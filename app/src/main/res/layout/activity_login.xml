@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+
+
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="16dp"
+    android:background="@color/background_color">
+
+    <!-- Logo -->
+    <ImageView
+        android:id="@+id/imageView5"
+        android:layout_width="284dp"
+        android:layout_height="189dp"
+        app:srcCompat="@drawable/swipswap_logo" />
+
+    <!-- Email Field -->
+    <EditText
+        android:id="@+id/email_edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/email_hint"
+        android:inputType="textEmailAddress"
+        android:padding="12dp"
+        android:background="@drawable/input_background"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Password Field -->
+    <EditText
+        android:id="@+id/password_edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/password_hint"
+        android:inputType="textPassword"
+        android:padding="12dp"
+        android:background="@drawable/input_background"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Login Button -->
+    <Button
+        android:id="@+id/login_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/login_button_text"
+        android:background="@drawable/button_background"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Signup Button -->
+    <Button
+        android:id="@+id/signup_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/signup_button_text"
+        android:background="@drawable/button_background"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Forgot Password Link -->
+    <TextView
+        android:id="@+id/forgot_password"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/forgot_password_text"
+        android:textColor="@color/link_color"
+        android:layout_marginTop="16dp"
+        android:clickable="true"
+        android:textStyle="bold" />
+
+</LinearLayout>
