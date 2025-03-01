@@ -1,36 +1,178 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:padding="16dp"
-    android:background="@color/background_color">
+    android:background="#FFFFFF">
 
-    <!-- Welcome Text -->
-    <TextView
-        android:id="@+id/welcome_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/welcome_name"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="16dp" />
-
-
-    <!-- Logo -->
-    <ImageView
-        android:id="@+id/imageView5"
+    <!-- Header Section (200dp Fixed) -->
+    <LinearLayout
+        android:id="@+id/header"
         android:layout_width="match_parent"
-        android:layout_height="163dp"
-        app:srcCompat="@drawable/swipswap_logo" />
+        android:layout_height="180dp"
+        android:background="@color/primaryBlue"
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:paddingBottom="0dp"
+        android:layout_alignParentTop="true">
 
-    <!-- Loading Indicator -->
-    <ProgressBar
-        android:id="@+id/loading_indicator"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:indeterminate="true" />
+        <ImageView
+            android:id="@+id/tvTitle"
+            android:layout_width="386dp"
+            android:layout_height="80dp"
+            android:layout_marginTop="12dp"
+            android:src="@drawable/new_logo" />
 
-</LinearLayout>
+        <ImageView
+            android:id="@+id/tvTitleInfo"
+            android:layout_width="120dp"
+            android:layout_height="80dp"
+            android:layout_marginRight="0dp"
+            android:layout_marginTop="-30dp"
+            android:src="@drawable/main" />
+
+
+    </LinearLayout>
+
+    <!-- Content Section (Takes Remaining Space) -->
+
+    <!-- Bottom Navigation Bar (100dp Fixed) -->
+    <LinearLayout
+        android:id="@+id/contentSection"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/bottomNav"
+        android:layout_below="@id/header"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="-2dp"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="80dp">
+
+            <ImageView
+                android:id="@+id/searchIcon"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="20dp"
+                android:src="@drawable/search"
+                android:tint="@color/primaryBlue" />
+
+            <EditText
+                android:id="@+id/searchBox"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="50dp"
+                android:background="@drawable/search_box_background"
+                android:hint="Search"
+                android:paddingStart="16dp"
+                android:paddingEnd="40dp"
+                android:textColorHint="@color/primaryBlue"
+                android:drawablePadding="10dp"
+                 />
+        </RelativeLayout>
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Drell"
+            android:textColor="#000000"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Dilijan, Sayat-Nova 7"
+            android:textColor="#FF5722"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/bottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:background="@color/primaryBlue"
+        android:padding="10dp"
+        android:gravity="center"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal">
+
+        <!-- Home Button -->
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:padding="8dp">
+
+            <ImageView
+                android:id="@+id/home"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/home"
+                android:layout_gravity="center"
+                android:tint="@color/orange" />
+
+
+        </FrameLayout>
+
+        <!-- Add Item Button -->
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:padding="8dp">
+
+            <ImageView
+                android:id="@+id/plus"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/plus"
+                android:tint="#FFFFFF"
+                android:layout_gravity="center" />
+
+
+        </FrameLayout>
+
+        <!-- Chat Button -->
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:padding="8dp">
+
+            <ImageView
+                android:id="@+id/chat"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/icon_chat"
+                android:tint="#FFFFFF"
+                android:layout_gravity="center" />
+
+        </FrameLayout>
+
+        <!-- Profile Button -->
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:padding="8dp">
+
+            <ImageView
+                android:id="@+id/user"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/user"
+                android:tint="#FFFFFF"
+                android:layout_gravity="center" />
+        </FrameLayout>
+
+    </LinearLayout>
+
+</RelativeLayout>

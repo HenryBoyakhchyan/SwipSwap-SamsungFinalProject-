@@ -1,15 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Add these string resources -->
-    <string name="email_hint">Enter your email</string>
-    <string name="password_hint">Enter your password</string>
-    <string name="login_button_text">Log In</string>
-    <string name="signup_button_text">Sign Up</string>
-    <string name="forgot_password_text">Forgot Password?</string>
-    <string name="logo_description">App Logo</string>
-
-    <!-- Add this string for the welcome text -->
-    <string name="app_name">SwipSwap</string>
-    <string name="welcome_name">Welcome To</string>
-    <string name="title_activity_signup">Sign Up</string>
+    <string name="app_name">Swip-Swap</string>
+    <string name="username_hint">Username</string>
+    <string name="password_hint">Password</string>
+    <string name="login_button">Login</string>
+    <string name="register_button">Register</string>
+    <string name="back_button">Back</string>
+    <string name="Sign_in"><u>Sign in</u></string>
+    <string name="Sign_up"><u>Sign up</u></string>
 
 </resources>

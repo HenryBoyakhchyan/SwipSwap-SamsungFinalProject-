@@ -1,0 +1,41 @@
+{
+  "project_info": {
+    "project_number": "257703008597",
+    "project_id": "swipswap-9a249",
+    "storage_bucket": "swipswap-9a249.firebasestorage.app"
+  },
+  "users": {
+    "userId1": {
+      "userId": "userId1",
+      "username": "JohnDoe",
+      "email": "johndoe@example.com"
+    },
+    "userId2": {
+      "userId": "userId2",
+      "username": "JaneSmith",
+      "email": "janesmith@example.com"
+    }
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:257703008597:android:58d00dd8c0c362ccf5b7dc",
+        "android_client_info": {
+          "package_name": "com.example.swipswapsamsungfinalproject"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6T_yYbPAB7kSdmnFEyUywdpGV8WsjEQI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

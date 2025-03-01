@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Define your custom colors here -->
-    <color name="background_color">#FFFFFF</color> <!-- White background -->
-    <color name="link_color">#1E88E5</color> <!-- Blue for clickable links -->
-    <color name="button_background">#FF5722</color> <!-- Optional button color -->
+    <color name="background">#F5F5F5</color>
+    <color name="primary">#6200EE</color>
+    <color name="secondary">#03DAC5</color>
+    <color name="gray">#BDBDBD</color>
+    <color name="navBackground">#658DB1</color>
+    <color name="Blue">#0000FF</color>
+    <color name="primaryBlue">#295bbe</color>
+    <color name="orange">#ffa314</color>
+    <color name="white">#ffffff</color>
 </resources>
