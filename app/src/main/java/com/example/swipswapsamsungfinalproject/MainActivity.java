@@ -1,129 +1,156 @@
 package com.example.swipswapsamsungfinalproject;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
-import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import com.google.firebase.FirebaseApp;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.*;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.yuyakaido.android.cardstackview.*;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
-//    private EditText searchBox;
-//    private RecyclerView cardRecyclerView;
-//    private CardAdapter cardAdapter;
-//    private List<ItemCard> cardList;
-//    private List<ItemCard> allCards;
-//    private SharedPreferences sharedPreferences;
-//    private DatabaseHelper databaseHelper;
-//
-//    @SuppressLint("WrongViewCast")
-
+public class MainActivity extends AppCompatActivity implements CardStackListener {
     private ImageView plus, chat, user;
     private FirebaseAuth auth;
-
+    private DatabaseReference databaseRef;
+    private List<ItemCard> itemList;
+    private SwipeItemAdapter adapter;
+    private CardStackView cardStackView;
+    private CardStackLayoutManager layoutManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //FirebaseApp.initializeApp(this);
+
         auth = FirebaseAuth.getInstance();
-
-
-//        startActivity(new Intent(MainActivity.this, SplashScreenActivity.class));
+        databaseRef = FirebaseDatabase.getInstance().getReference("SwapItems");
 
         plus = findViewById(R.id.plus);
         chat = findViewById(R.id.chat);
         user = findViewById(R.id.user);
+        cardStackView = findViewById(R.id.card_stack_view);
 
-        plus.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(MainActivity.this, CreateActivity.class));
-            }
-        });
+        fetchSwapItems();
 
-        chat.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(MainActivity.this, OverallChatActivity.class));
-            }
-        });
+        itemList = new ArrayList<>();
+        adapter = new SwipeItemAdapter(this, itemList);
 
-        user.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(MainActivity.this, UserActivity.class));
-            }
-        });
+        layoutManager = new CardStackLayoutManager(this, this);
+        cardStackView.setLayoutManager(layoutManager);
+        cardStackView.setAdapter(adapter);
 
 
-//
-//        searchBox = findViewById(R.id.searchBar);
-//        cardRecyclerView = findViewById(R.id.cardContainer);
-//        sharedPreferences = getSharedPreferences("SwipedCards", MODE_PRIVATE);
-//        databaseHelper = new DatabaseHelper(this);
-//
-//        loadCards();
-//        setupRecyclerView();
-//
-//        searchBox.addTextChangedListener(new TextWatcher() {
-//            @Override
-//            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-//
-//            @Override
-//            public void onTextChanged(CharSequence s, int start, int before, int count) {
-//                filterCards(s.toString());
-//            }
-//
-//            @Override
-//            public void afterTextChanged(Editable s) {}
-//        });
+        plus.setOnClickListener(view -> startActivity(new Intent(MainActivity.this, CreateActivity.class)));
+        chat.setOnClickListener(view -> startActivity(new Intent(MainActivity.this, OverallChatActivity.class)));
+        user.setOnClickListener(view -> startActivity(new Intent(MainActivity.this, UserActivity.class)));
     }
-//
-//    private void loadCards() {
-//        allCards = databaseHelper.getAllItems();
-//        cardList = new ArrayList<>(allCards);
-//    }
-//
-//    private void setupRecyclerView() {
-//        cardAdapter = new CardAdapter(cardList, this::onSwipeLeft, this::onSwipeRight);
-//        cardRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-//        cardRecyclerView.setAdapter(cardAdapter);
-//    }
-//
-//    private void filterCards(String query) {
-//        List<ItemCard> filteredList = new ArrayList<>();
-//        for (ItemCard card : allCards) {
-//            if (String.valueOf(card.getId()).contains(query)) {
-//                filteredList.add(card);
-//            }
-//        }
-//        cardAdapter.updateList(filteredList);
-//    }
-//
-//    private void onSwipeLeft(ItemCard card) {
-//        sharedPreferences.edit().putBoolean("swiped_" + card.getId(), true).apply();
-//        cardList.remove(card);
-//        cardAdapter.notifyDataSetChanged();
-//    }
-//
-//    private void onSwipeRight(ItemCard card) {
-//        CartManager.getInstance().addToCart(card);
-//        cardList.remove(card);
-//        cardAdapter.notifyDataSetChanged();
-//    }
+
+    private void fetchSwapItems() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        FirebaseUser user = auth.getCurrentUser();
+        if (user == null) {
+            Log.e("FirestoreDebug", "User not logged in.");
+            return;
+        }
+
+        String userEmail = user.getEmail();
+        if (userEmail == null) {
+            Log.e("FirestoreDebug", "User email is null, cannot fetch items.");
+            return;
+        }
+
+        Log.d("FirestoreDebug", "Fetching items excluding email: " + userEmail);
+
+        db.collection("swap_items")
+                .whereNotEqualTo("email", userEmail)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        itemList.clear();
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            try {
+                                ItemCard item = document.toObject(ItemCard.class);
+
+                                // Ensure item is not trashed or given
+                                if (!"trashed".equals(item.getStatus()) && !"given".equals(item.getStatus())) {
+                                    itemList.add(item);
+                                    Log.d("FirestoreDebug", "Added item: " + item.getDescription());
+                                }
+                            } catch (Exception e) {
+                                Log.e("FirestoreError", "Failed to parse item", e);
+                            }
+                        }
+                        Collections.reverse(itemList);
+                        adapter.notifyDataSetChanged();
+                    } else {
+                        Log.e("FirestoreDebug", "Query failed", task.getException());
+                    }
+                });
+    }
+
+
+
+    private void markAsChosen(ItemCard item) {
+        DatabaseReference itemRef = databaseRef.child(item.getDescription());
+        itemRef.child("status").setValue("chosen");
+    }
+
+    // ✅ Implementing required CardStackListener methods
+    @Override
+    public void onCardDragging(Direction direction, float ratio) {
+        // Optional: Handle dragging feedback (e.g., change UI)
+    }
+
+    @Override
+    public void onCardSwiped(Direction direction) {
+        if (direction == Direction.Right) {
+            Toast.makeText(this, "Item Liked!", Toast.LENGTH_SHORT).show();
+        } else if (direction == Direction.Left) {
+            Toast.makeText(this, "Item Skipped!", Toast.LENGTH_SHORT).show();
+        }
+
+        // Remove swiped card
+        if (!itemList.isEmpty()) {
+            itemList.remove(0);
+            adapter.notifyDataSetChanged();
+        }
+    }
+
+    @Override
+    public void onCardRewound() {
+        Toast.makeText(this, "Card Rewound", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onCardCanceled() {
+        Toast.makeText(this, "Swipe Canceled", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onCardAppeared(View view, int position) {}
+
+    @Override
+    public void onCardDisappeared(View view, int position) {}
 }

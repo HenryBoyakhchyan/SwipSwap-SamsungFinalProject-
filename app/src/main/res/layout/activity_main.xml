@@ -5,6 +5,7 @@
     android:layout_height="match_parent"
     android:background="#FFFFFF">
 
+
     <!-- Header Section (200dp Fixed) -->
     <LinearLayout
         android:id="@+id/header"
@@ -15,6 +16,7 @@
         android:padding="20dp"
         android:paddingBottom="0dp"
         android:layout_alignParentTop="true">
+
 
         <ImageView
             android:id="@+id/tvTitle"
@@ -77,21 +79,12 @@
                  />
         </RelativeLayout>
 
+        <com.yuyakaido.android.cardstackview.CardStackView
+            android:id="@+id/card_stack_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="10dp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Drell"
-            android:textColor="#000000"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Dilijan, Sayat-Nova 7"
-            android:textColor="#FF5722"
-            android:textSize="16sp" />
     </LinearLayout>
 
     <LinearLayout

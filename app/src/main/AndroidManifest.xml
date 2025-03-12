@@ -19,7 +19,7 @@
             android:theme="@style/Theme.SwipSwapSamsungFinalProject" />
 
         <activity android:name=".ForgotPasswordActivity" />
-        <activity android:name=".UserActivity" />
+        <activity android:name=".UserActivity"/>
         <activity android:name=".CreateActivity" />
         <activity android:name=".OverallChatActivity" />
 
