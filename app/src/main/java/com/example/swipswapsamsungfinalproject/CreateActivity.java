@@ -2,82 +2,106 @@ package com.example.swipswapsamsungfinalproject;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Base64;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.util.Base64;
+import com.google.firebase.firestore.Query;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class CreateActivity extends AppCompatActivity {
 
     private static final int PICK_IMAGE_REQUEST = 1;
-    private ImageView itemImage,btnUploadImage, home, user, chat;
-    private EditText etTag, etDescription, etAddress;
-    private Button  publishButton;
+
+    private ImageView btnUploadImage, home, chat, user;
+    private EditText etDescription, etAddress;
+    private Button publishButton;
+    private ListView categoriesListView;
     private Uri imageUri;
 
     private FirebaseAuth auth;
     private FirebaseFirestore db;
-    private StorageReference storageRef;
-
     private ProgressDialog progressDialog;
+
+    private List<String> categoryNames;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create);
 
-        // Initialize Firebase
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-        storageRef = FirebaseStorage.getInstance().getReference("swap_items");
 
-        // UI References
-        itemImage = findViewById(R.id.upload_image_button);
-        etTag = findViewById(R.id.tag);
+        btnUploadImage = findViewById(R.id.btnUploadImage);
         etDescription = findViewById(R.id.description);
         etAddress = findViewById(R.id.address);
-        btnUploadImage = findViewById(R.id.btnUploadImage);
         publishButton = findViewById(R.id.publish);
+        categoriesListView = findViewById(R.id.categoriesListView);
 
-        // Bottom Navigation Buttons
         home = findViewById(R.id.home);
         chat = findViewById(R.id.chat);
-      //  user = findViewById(R.id.user);
+        user = findViewById(R.id.user);
 
-        // Progress Dialog
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Uploading...");
 
-        // Upload Image Button Click
-        btnUploadImage.setOnClickListener(v -> openFileChooser()); // Set click listener
+        btnUploadImage.setOnClickListener(v -> openFileChooser());
 
-        // Publish Button Click
         publishButton.setOnClickListener(v -> saveSwapItem());
 
-        // Navigation Buttons Click
-        home.setOnClickListener(view -> startActivity(new Intent(CreateActivity.this, MainActivity.class)));
-        chat.setOnClickListener(view -> startActivity(new Intent(CreateActivity.this, OverallChatActivity.class)));
+        home.setOnClickListener(view ->
+                startActivity(new Intent(CreateActivity.this, MainActivity.class)));
+        chat.setOnClickListener(view ->
+                startActivity(new Intent(CreateActivity.this, ChatActivity.class)));
+        user.setOnClickListener(view ->
+                startActivity(new Intent(CreateActivity.this, UserActivity.class)));
+
+        loadCategories();
     }
 
-    // Open File Chooser to Pick Image
+    private void loadCategories() {
+        db.collection("swap_category")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    categoryNames = new ArrayList<>();
+                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                        String categoryName = doc.getString("name");
+                        if (categoryName != null) {
+                            categoryNames.add(categoryName);
+                        }
+                    }
+                    ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                            android.R.layout.simple_list_item_multiple_choice, categoryNames);
+                    categoriesListView.setAdapter(adapter);
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Failed loading categories.", Toast.LENGTH_SHORT).show());
+    }
+
     private void openFileChooser() {
         Intent intent = new Intent();
         intent.setType("image/*");
@@ -88,71 +112,94 @@ public class CreateActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK
+                && data != null && data.getData() != null) {
             imageUri = data.getData();
             btnUploadImage.setImageURI(imageUri);
         }
     }
 
-    // Save Swap Item to Firestore
     private void saveSwapItem() {
-        String tag = etTag.getText().toString().trim();
         String description = etDescription.getText().toString().trim();
         String address = etAddress.getText().toString().trim();
-       // String status = statusSpinner.getSelectedItem().toString();
 
-        FirebaseUser user = auth.getCurrentUser();
-        if (user == null) {
-            Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
+        if (description.isEmpty() || address.isEmpty() || imageUri == null) {
+            Toast.makeText(this, "All fields and image are required!", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        if (tag.isEmpty() || description.isEmpty() || address.isEmpty() || imageUri == null) {
-            Toast.makeText(this, "All fields are required!", Toast.LENGTH_SHORT).show();
+        List<String> selectedCategories = new ArrayList<>();
+        for (int i = 0; i < categoriesListView.getCount(); i++) {
+            if (categoriesListView.isItemChecked(i)) {
+                selectedCategories.add(categoryNames.get(i));
+            }
+        }
+
+        if (selectedCategories.isEmpty()) {
+            Toast.makeText(this, "Select at least one category.", Toast.LENGTH_SHORT).show();
             return;
         }
 
         progressDialog.show();
 
-        try {
-            // Convert Image URI to Base64 String
-            InputStream inputStream = getContentResolver().openInputStream(imageUri);
-            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-            String base64Image = encodeToBase64(bitmap);
+        db.collection("swap_items")
+                .orderBy("swapId", Query.Direction.DESCENDING)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    int nextSwapId = 1;
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        DocumentSnapshot lastDoc = queryDocumentSnapshots.getDocuments().get(0);
+                        Long lastSwapId = lastDoc.getLong("swapId");
+                        if (lastSwapId != null) {
+                            nextSwapId = lastSwapId.intValue() + 1;
+                        }
+                    }
 
-            // Save Swap Item Data to Firestore
-            Map<String, Object> swapItem = new HashMap<>();
-            swapItem.put("imageBlob", base64Image);
-            swapItem.put("tag", tag);
-            swapItem.put("email", user.getEmail());
-            swapItem.put("description", description);
-            swapItem.put("address", address);
-            swapItem.put("status", "published");
+                    try {
+                        InputStream inputStream = getContentResolver().openInputStream(imageUri);
+                        Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                        String base64Image = encodeToBase64(bitmap);
 
-            db.collection("swap_items").add(swapItem)
-                    .addOnSuccessListener(documentReference -> {
+                        Map<String, Object> swapItem = new HashMap<>();
+                        swapItem.put("swapId", nextSwapId);
+                        swapItem.put("imageBlob", base64Image);
+                        swapItem.put("categories", selectedCategories);
+                        swapItem.put("email", auth.getCurrentUser().getEmail());
+                        swapItem.put("userId", auth.getCurrentUser().getUid());
+                        swapItem.put("description", description);
+                        swapItem.put("address", address);
+                        swapItem.put("status", "published");
+                        swapItem.put("publishedDate", new Date());
+                        swapItem.put("chosenByUserIds", new ArrayList<>());
+
+                        db.collection("swap_items").add(swapItem)
+                                .addOnSuccessListener(documentReference -> {
+                                    progressDialog.dismiss();
+                                    Toast.makeText(this, "Item Added! ID: ", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(this, "Item Added! ID: ", Toast.LENGTH_SHORT).show();
+                                    finish();
+                                })
+                                .addOnFailureListener(e -> {
+                                    progressDialog.dismiss();
+                                    Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                });
+                    } catch (IOException e) {
                         progressDialog.dismiss();
-                        Toast.makeText(this, "Item Added!", Toast.LENGTH_SHORT).show();
-                        finish();
-                    })
-                    .addOnFailureListener(e -> {
-                        progressDialog.dismiss();
-                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    });
-
-        } catch (IOException e) {
-            progressDialog.dismiss();
-            e.printStackTrace();
-            Toast.makeText(this, "Image Processing Failed", Toast.LENGTH_SHORT).show();
-        }
+                        e.printStackTrace();
+                        Toast.makeText(this, "Image Processing Failed", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    progressDialog.dismiss();
+                    Toast.makeText(this, "Error retrieving last SwapId: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 
-    // Convert Bitmap to Base64 String
     private String encodeToBase64(Bitmap image) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         image.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
         byte[] byteArray = byteArrayOutputStream.toByteArray();
         return Base64.encodeToString(byteArray, Base64.DEFAULT);
     }
-
 }

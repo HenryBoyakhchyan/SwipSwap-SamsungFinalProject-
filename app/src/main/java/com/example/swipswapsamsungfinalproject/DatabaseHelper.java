@@ -1,35 +1,41 @@
 package com.example.swipswapsamsungfinalproject;
 
-import android.util.Log;
-import android.widget.Toast;
-import androidx.annotation.NonNull;
-import com.google.firebase.auth.AuthResult;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.FirebaseFirestore;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DatabaseHelper {
-    private FirebaseAuth mAuth;
-    private DatabaseReference mDatabase;
+
+    private final FirebaseAuth mAuth;
+    private final FirebaseFirestore db;
 
     public DatabaseHelper() {
         mAuth = FirebaseAuth.getInstance();
-        mDatabase = FirebaseDatabase.getInstance().getReference("users");
+        db = FirebaseFirestore.getInstance();
     }
 
     // Register User
-    public void registerUser(String username, String email, String password, OnUserRegisterListener listener) {
+    public void registerUser(String name, String email,
+                             String address, String password, String profileImageBlob,
+                             OnUserRegisterListener listener) {
+
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        // Get user ID from Firebase Authentication
                         String userId = mAuth.getCurrentUser().getUid();
 
-                        // Create user object
-                        User newUser = new User(userId, username, email);
+                        Map<String, Object> newUser = new HashMap<>();
+                        newUser.put("userId", userId);
+                        newUser.put("name", name);
+                        newUser.put("email", email);
+                        newUser.put("address", address);
+                        newUser.put("profileImageBlob", profileImageBlob);
+                        newUser.put("joinedDate", new Timestamp(new Date()));
 
-                        // Store user in Firebase Realtime Database
-                        mDatabase.child(userId).setValue(newUser)
+                        db.collection("users").document(userId).set(newUser)
                                 .addOnCompleteListener(dbTask -> {
                                     if (dbTask.isSuccessful()) {
                                         listener.onSuccess("User registered successfully!");

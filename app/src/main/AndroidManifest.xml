@@ -21,7 +21,7 @@
         <activity android:name=".ForgotPasswordActivity" />
         <activity android:name=".UserActivity"/>
         <activity android:name=".CreateActivity" />
-        <activity android:name=".OverallChatActivity" />
+        <activity android:name=".ChatActivity" />
 
         <activity android:name=".SplashScreenActivity"
             android:exported="true">

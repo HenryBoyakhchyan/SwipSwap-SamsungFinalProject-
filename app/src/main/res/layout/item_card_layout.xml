@@ -51,14 +51,21 @@
                 android:paddingBottom="4dp" />
 
             <TextView
-                android:id="@+id/itemTag"
+                android:id="@+id/itemCategories"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Item Tags"
+                android:text="Item Categories"
                 android:textSize="14sp"
                 android:textColor="@android:color/holo_blue_dark"
                 android:paddingBottom="4dp" />
-
+            <TextView
+                android:id="@+id/publishedDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Published Date"
+                android:textSize="14sp"
+                android:textColor="@android:color/darker_gray"
+                android:textStyle="bold" />
             <TextView
                 android:id="@+id/itemStatus"
                 android:layout_width="wrap_content"

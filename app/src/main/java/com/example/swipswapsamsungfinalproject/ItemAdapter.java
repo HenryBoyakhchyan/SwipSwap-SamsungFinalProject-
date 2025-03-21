@@ -11,7 +11,12 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
+import com.google.firebase.Timestamp;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder> {
     private Context context;
@@ -33,10 +38,20 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
     public void onBindViewHolder(@NonNull ItemViewHolder holder, int position) {
         ItemCard item = itemList.get(position);
         holder.description.setText(item.getDescription());
-        holder.tag.setText( item.getTag());
         holder.address.setText(item.getAddress());
       //  holder.publishedDate.setText(item.getPublishedDate().toString());
         holder.status.setText(item.getStatus());
+
+        List<String> categories = item.getCategories();
+        String categoryList = "";
+        for (String category : categories) {
+            categoryList = categoryList.equals("") ? category : categoryList + ", " + category;
+            }
+
+       holder.categories.setText(categoryList);
+
+        String formatedPublishedDate = convertFierbaseDate(item.getPublishedDate().toString());
+        holder.publishedDate.setText(formatedPublishedDate);
 
 
         if (item.getImageBlob() != null && !item.getImageBlob().isEmpty()) {
@@ -58,17 +73,34 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
         return itemList.size();
     }
 
+    public String convertFierbaseDate(String firestoreTimestamp){
+
+        String secondsString = firestoreTimestamp.substring(firestoreTimestamp.indexOf("seconds=") + 8, firestoreTimestamp.indexOf(",")).trim();
+        String nanosString = firestoreTimestamp.substring(firestoreTimestamp.indexOf("nanoseconds=") + 12, firestoreTimestamp.indexOf(")")).trim();
+
+        long seconds = Long.parseLong(secondsString);
+        int nanos = Integer.parseInt(nanosString);
+
+        Timestamp timestamp = new Timestamp(seconds, nanos);
+        Date date = timestamp.toDate();
+
+        SimpleDateFormat format = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.US);
+        String formattedDate = format.format(date);
+
+        return formattedDate;
+    }
     public static class ItemViewHolder extends RecyclerView.ViewHolder {
         ImageView itemImage;
-        TextView description, tag, address, status;
+        TextView description, categories, address, status, publishedDate;
 
         public ItemViewHolder(@NonNull View itemView) {
             super(itemView);
             itemImage = itemView.findViewById(R.id.itemImage2);
             description = itemView.findViewById(R.id.itemDescription);
-            tag = itemView.findViewById(R.id.itemTag);
+            categories = itemView.findViewById(R.id.itemCategories);
             address = itemView.findViewById(R.id.itemAddress);
             status = itemView.findViewById(R.id.itemStatus);
+            publishedDate = itemView.findViewById(R.id.publishedDate);
         }
     }
 }

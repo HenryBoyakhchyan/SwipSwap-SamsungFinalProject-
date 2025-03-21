@@ -7,33 +7,20 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.*;
-
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.yuyakaido.android.cardstackview.*;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class MainActivity extends AppCompatActivity implements CardStackListener {
     private ImageView plus, chat, user;
     private FirebaseAuth auth;
-    private DatabaseReference databaseRef;
+    private FirebaseFirestore db;
     private List<ItemCard> itemList;
     private SwipeItemAdapter adapter;
     private CardStackView cardStackView;
@@ -45,98 +32,139 @@ public class MainActivity extends AppCompatActivity implements CardStackListener
         setContentView(R.layout.activity_main);
 
         auth = FirebaseAuth.getInstance();
-        databaseRef = FirebaseDatabase.getInstance().getReference("SwapItems");
+        db = FirebaseFirestore.getInstance();
 
         plus = findViewById(R.id.plus);
         chat = findViewById(R.id.chat);
         user = findViewById(R.id.user);
         cardStackView = findViewById(R.id.card_stack_view);
 
-        fetchSwapItems();
-
         itemList = new ArrayList<>();
         adapter = new SwipeItemAdapter(this, itemList);
-
         layoutManager = new CardStackLayoutManager(this, this);
         cardStackView.setLayoutManager(layoutManager);
         cardStackView.setAdapter(adapter);
 
+        fetchSwapItems();
 
-        plus.setOnClickListener(view -> startActivity(new Intent(MainActivity.this, CreateActivity.class)));
-        chat.setOnClickListener(view -> startActivity(new Intent(MainActivity.this, OverallChatActivity.class)));
-        user.setOnClickListener(view -> startActivity(new Intent(MainActivity.this, UserActivity.class)));
+        plus.setOnClickListener(view ->
+                startActivity(new Intent(MainActivity.this, CreateActivity.class)));
+
+        chat.setOnClickListener(view ->
+                startActivity(new Intent(MainActivity.this, ChatActivity.class)));
+
+        user.setOnClickListener(view ->
+                startActivity(new Intent(MainActivity.this, UserActivity.class)));
     }
 
     private void fetchSwapItems() {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        FirebaseUser user = auth.getCurrentUser();
-        if (user == null) {
-            Log.e("FirestoreDebug", "User not logged in.");
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser == null || currentUser.getUid() == null) {
+            Log.e("FirestoreDebug", "User not authenticated.");
             return;
         }
 
-        String userEmail = user.getEmail();
-        if (userEmail == null) {
-            Log.e("FirestoreDebug", "User email is null, cannot fetch items.");
-            return;
-        }
-
-        Log.d("FirestoreDebug", "Fetching items excluding email: " + userEmail);
+        String currentUserId = currentUser.getUid();
 
         db.collection("swap_items")
-                .whereNotEqualTo("email", userEmail)
+                .whereNotEqualTo("userId", currentUserId)
                 .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        itemList.clear();
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            try {
-                                ItemCard item = document.toObject(ItemCard.class);
+                .addOnSuccessListener(querySnapshots -> {
+                    itemList.clear();
 
-                                // Ensure item is not trashed or given
-                                if (!"trashed".equals(item.getStatus()) && !"given".equals(item.getStatus())) {
-                                    itemList.add(item);
-                                    Log.d("FirestoreDebug", "Added item: " + item.getDescription());
-                                }
-                            } catch (Exception e) {
-                                Log.e("FirestoreError", "Failed to parse item", e);
-                            }
+                    for (QueryDocumentSnapshot doc : querySnapshots) {
+                        ItemCard item = doc.toObject(ItemCard.class);
+                        if (!item.getStatus().equals("trashed") && !item.getStatus().equals("given") &&
+                                (item.getChosenByUserIds() == null || !item.getChosenByUserIds().contains(currentUserId))) {
+                            itemList.add(item);
                         }
-                        Collections.reverse(itemList);
-                        adapter.notifyDataSetChanged();
-                    } else {
-                        Log.e("FirestoreDebug", "Query failed", task.getException());
                     }
-                });
-    }
 
-
-
-    private void markAsChosen(ItemCard item) {
-        DatabaseReference itemRef = databaseRef.child(item.getDescription());
-        itemRef.child("status").setValue("chosen");
-    }
-
-    // ✅ Implementing required CardStackListener methods
-    @Override
-    public void onCardDragging(Direction direction, float ratio) {
-        // Optional: Handle dragging feedback (e.g., change UI)
+                    Collections.sort(itemList, (i1, i2) -> i2.getPublishedDate().compareTo(i1.getPublishedDate()));
+                    adapter.notifyDataSetChanged();
+                })
+                .addOnFailureListener(e ->
+                        Log.e("FirestoreError", "Failed to fetch swap items", e));
     }
 
     @Override
     public void onCardSwiped(Direction direction) {
-        if (direction == Direction.Right) {
-            Toast.makeText(this, "Item Liked!", Toast.LENGTH_SHORT).show();
+        if (itemList.isEmpty()) return;
+
+        ItemCard swipedItem = itemList.get(0);
+        FirebaseUser currentUser = auth.getCurrentUser();
+
+        if (direction == Direction.Right && currentUser != null) {
+            recordUserSelection(swipedItem, currentUser);
+            Toast.makeText(this, "Item Chosen & Chat Created!", Toast.LENGTH_SHORT).show();
         } else if (direction == Direction.Left) {
-            Toast.makeText(this, "Item Skipped!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Item Skipped", Toast.LENGTH_SHORT).show();
         }
 
-        // Remove swiped card
-        if (!itemList.isEmpty()) {
-            itemList.remove(0);
-            adapter.notifyDataSetChanged();
-        }
+        itemList.remove(0);
+        adapter.notifyDataSetChanged();
     }
+
+    private void recordUserSelection(ItemCard swipedItem, FirebaseUser currentUser) {
+        String currentUserId = currentUser.getUid();
+        String userEmail = currentUser.getEmail();
+
+        Map<String, Object> selectionData = new HashMap<>();
+        selectionData.put("swapId", swipedItem.getSwapId());
+        selectionData.put("userId", currentUserId);
+        selectionData.put("userEmail", userEmail);
+        selectionData.put("selectedDate", new Date());
+        selectionData.put("status", "chosen");
+
+        db.collection("user_selections").add(selectionData)
+                .addOnSuccessListener(docRef -> Log.d("Firestore", "Selection recorded"))
+                .addOnFailureListener(e -> Log.e("FirestoreError", "Selection recording failed", e));
+
+        updateSwapItemChosenBy(swipedItem, currentUserId);
+        createChat(swipedItem, currentUser);
+    }
+
+    private void updateSwapItemChosenBy(ItemCard item, String userId) {
+        List<String> chosenBy = item.getChosenByUserIds() == null ?
+                new ArrayList<>() : item.getChosenByUserIds();
+        chosenBy.add(userId);
+
+        db.collection("swap_items")
+                .document(String.valueOf(item.getSwapId()))
+                .update("chosenByUserIds", chosenBy)
+                .addOnSuccessListener(aVoid -> Log.d("Firestore", "SwapItem updated"))
+                .addOnFailureListener(e -> Log.e("FirestoreError", "SwapItem update failed", e));
+    }
+
+    private void createChat(ItemCard swipedItem, FirebaseUser currentUser) {
+        String chatId = swipedItem.getSwapId() + "_" + currentUser.getUid();
+
+        Map<String, Object> chatData = new HashMap<>();
+        chatData.put("chatId", chatId); // optional, not required if using docId
+        chatData.put("swapId", swipedItem.getSwapId());
+        chatData.put("swapOwnerId", swipedItem.getUserId());
+        chatData.put("swapOwnerEmail", swipedItem.getEmail());
+        chatData.put("clientUserId", currentUser.getUid());
+        chatData.put("clientUserEmail", currentUser.getEmail());
+        chatData.put("creationDate", new Date());
+        chatData.put("lastMessage", "");
+        chatData.put("lastMessageTimestamp", new Date());
+        chatData.put("status", "chosen");
+        chatData.put("unreadCounts", 0);
+
+        chatData.put("swapItemImageBlob", swipedItem.getImageBlob());
+        chatData.put("swapItemDescription", swipedItem.getDescription());
+        chatData.put("swapItemAddress", swipedItem.getAddress());
+
+        db.collection("chats").document(chatId).set(chatData)
+                .addOnSuccessListener(aVoid ->
+                        Log.d("Firestore", "Chat created successfully"))
+                .addOnFailureListener(e ->
+                        Log.e("FirestoreError", "Chat creation failed", e));
+    }
+
+    @Override
+    public void onCardDragging(Direction direction, float ratio) { }
 
     @Override
     public void onCardRewound() {
@@ -149,8 +177,8 @@ public class MainActivity extends AppCompatActivity implements CardStackListener
     }
 
     @Override
-    public void onCardAppeared(View view, int position) {}
+    public void onCardAppeared(View view, int position) { }
 
     @Override
-    public void onCardDisappeared(View view, int position) {}
+    public void onCardDisappeared(View view, int position) { }
 }

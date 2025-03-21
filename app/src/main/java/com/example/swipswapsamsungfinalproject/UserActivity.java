@@ -3,7 +3,6 @@ package com.example.swipswapsamsungfinalproject;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.Nullable;
@@ -69,7 +68,7 @@ public class UserActivity extends AppCompatActivity {
 
         // Navigation Click Listeners
         plus.setOnClickListener(view -> startActivity(new Intent(UserActivity.this, CreateActivity.class)));
-        chat.setOnClickListener(view -> startActivity(new Intent(UserActivity.this, OverallChatActivity.class)));
+        chat.setOnClickListener(view -> startActivity(new Intent(UserActivity.this, ChatActivity.class)));
         home.setOnClickListener(view -> startActivity(new Intent(UserActivity.this, MainActivity.class)));
     }
 

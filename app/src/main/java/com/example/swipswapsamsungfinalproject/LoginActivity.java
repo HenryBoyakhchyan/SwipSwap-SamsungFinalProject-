@@ -27,6 +27,7 @@ public class LoginActivity extends AppCompatActivity {
         tvSignUpLink = findViewById(R.id.tvSignUPLink);
 
         btnLogin.setOnClickListener(v -> {
+
             String email = etEmail.getText().toString().trim();
             String password = etPassword.getText().toString().trim();
 
