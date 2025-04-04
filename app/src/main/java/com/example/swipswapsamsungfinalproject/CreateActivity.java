@@ -1,5 +1,6 @@
 package com.example.swipswapsamsungfinalproject;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -12,6 +13,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -39,7 +41,6 @@ public class CreateActivity extends AppCompatActivity {
     private ImageView btnUploadImage, home, chat, user;
     private EditText etDescription, etAddress;
     private Button publishButton;
-    private ListView categoriesListView;
     private Uri imageUri;
 
     private FirebaseAuth auth;
@@ -47,6 +48,10 @@ public class CreateActivity extends AppCompatActivity {
     private ProgressDialog progressDialog;
 
     private List<String> categoryNames;
+    private TextView categorySelector;
+    private List<String> allCategories = new ArrayList<>();
+    private boolean[] selectedItems;
+    private List<String> selectedCategories = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,8 +65,10 @@ public class CreateActivity extends AppCompatActivity {
         etDescription = findViewById(R.id.description);
         etAddress = findViewById(R.id.address);
         publishButton = findViewById(R.id.publish);
-        categoriesListView = findViewById(R.id.categoriesListView);
+        categorySelector = findViewById(R.id.categorySelector);
+        fetchCategoriesFromDB(); // Populate from swap_category
 
+        categorySelector.setOnClickListener(v -> showCategoryDialog());
         home = findViewById(R.id.home);
         chat = findViewById(R.id.chat);
         user = findViewById(R.id.user);
@@ -80,26 +87,39 @@ public class CreateActivity extends AppCompatActivity {
         user.setOnClickListener(view ->
                 startActivity(new Intent(CreateActivity.this, UserActivity.class)));
 
-        loadCategories();
+      //  loadCategories();
     }
 
-    private void loadCategories() {
+
+    private void fetchCategoriesFromDB() {
         db.collection("swap_category")
                 .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    categoryNames = new ArrayList<>();
-                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
-                        String categoryName = doc.getString("name");
-                        if (categoryName != null) {
-                            categoryNames.add(categoryName);
-                        }
+                .addOnSuccessListener(querySnapshot -> {
+                    allCategories.clear();
+                    for (DocumentSnapshot doc : querySnapshot) {
+                        String name = doc.getString("name");
+                        if (name != null) allCategories.add(name);
                     }
-                    ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                            android.R.layout.simple_list_item_multiple_choice, categoryNames);
-                    categoriesListView.setAdapter(adapter);
+                    selectedItems = new boolean[allCategories.size()];
+                });
+    }
+    private void showCategoryDialog() {
+        String[] categoriesArray = allCategories.toArray(new String[0]);
+
+        new AlertDialog.Builder(this)
+                .setTitle("Select Categories")
+                .setMultiChoiceItems(categoriesArray, selectedItems, (dialog, indexSelected, isChecked) -> {
+                    if (isChecked) {
+                        selectedCategories.add(allCategories.get(indexSelected));
+                    } else {
+                        selectedCategories.remove(allCategories.get(indexSelected));
+                    }
                 })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Failed loading categories.", Toast.LENGTH_SHORT).show());
+                .setPositiveButton("OK", (dialog, which) -> {
+                    categorySelector.setText(String.join(", ", selectedCategories));
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     private void openFileChooser() {
@@ -128,17 +148,11 @@ public class CreateActivity extends AppCompatActivity {
             return;
         }
 
-        List<String> selectedCategories = new ArrayList<>();
-        for (int i = 0; i < categoriesListView.getCount(); i++) {
-            if (categoriesListView.isItemChecked(i)) {
-                selectedCategories.add(categoryNames.get(i));
-            }
-        }
-
         if (selectedCategories.isEmpty()) {
             Toast.makeText(this, "Select at least one category.", Toast.LENGTH_SHORT).show();
             return;
         }
+
 
         progressDialog.show();
 
@@ -172,6 +186,7 @@ public class CreateActivity extends AppCompatActivity {
                         swapItem.put("status", "published");
                         swapItem.put("publishedDate", new Date());
                         swapItem.put("chosenByUserIds", new ArrayList<>());
+
 
                         db.collection("swap_items").add(swapItem)
                                 .addOnSuccessListener(documentReference -> {

@@ -2,8 +2,11 @@ package com.example.swipswapsamsungfinalproject;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -11,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.yuyakaido.android.cardstackview.*;
@@ -22,9 +26,12 @@ public class MainActivity extends AppCompatActivity implements CardStackListener
     private FirebaseAuth auth;
     private FirebaseFirestore db;
     private List<ItemCard> itemList;
+    private List<ItemCard> allItems = new ArrayList<>();
+
     private SwipeItemAdapter adapter;
     private CardStackView cardStackView;
     private CardStackLayoutManager layoutManager;
+    private EditText searchBox;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +52,23 @@ public class MainActivity extends AppCompatActivity implements CardStackListener
         cardStackView.setLayoutManager(layoutManager);
         cardStackView.setAdapter(adapter);
 
+        searchBox = findViewById(R.id.searchBox);
+
+
+        searchBox.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterItems(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
+
         fetchSwapItems();
 
         plus.setOnClickListener(view ->
@@ -56,6 +80,35 @@ public class MainActivity extends AppCompatActivity implements CardStackListener
         user.setOnClickListener(view ->
                 startActivity(new Intent(MainActivity.this, UserActivity.class)));
     }
+    private void filterItems(String query) {
+       if(allItems.isEmpty()){
+           allItems.addAll(itemList);
+       }
+
+
+        if (query.isEmpty()) {
+            itemList.clear();
+            itemList.addAll(allItems);
+        } else {
+            List<ItemCard> filtered = new ArrayList<>();
+            String lowerQuery = query.toLowerCase();
+
+            for (ItemCard item : allItems) {
+                boolean matchesDescription = item.getDescription() != null && item.getDescription().toLowerCase().contains(lowerQuery);
+                boolean matchesAddress = item.getAddress() != null && item.getAddress().toLowerCase().contains(lowerQuery);
+                boolean matchesCategory = item.getCategories() != null && item.getCategories().stream().anyMatch(cat -> cat.toLowerCase().contains(lowerQuery));
+
+                if (matchesDescription || matchesAddress || matchesCategory) {
+                    filtered.add(item);
+                }
+            }
+
+            itemList.clear();
+            itemList.addAll(filtered);
+        }
+
+        adapter.notifyDataSetChanged();
+    }
 
     private void fetchSwapItems() {
         FirebaseUser currentUser = auth.getCurrentUser();
@@ -65,7 +118,7 @@ public class MainActivity extends AppCompatActivity implements CardStackListener
         }
 
         String currentUserId = currentUser.getUid();
-
+//
         db.collection("swap_items")
                 .whereNotEqualTo("userId", currentUserId)
                 .get()
@@ -85,6 +138,7 @@ public class MainActivity extends AppCompatActivity implements CardStackListener
                 })
                 .addOnFailureListener(e ->
                         Log.e("FirestoreError", "Failed to fetch swap items", e));
+
     }
 
     @Override
@@ -122,6 +176,7 @@ public class MainActivity extends AppCompatActivity implements CardStackListener
 
         updateSwapItemChosenBy(swipedItem, currentUserId);
         createChat(swipedItem, currentUser);
+        allItems.remove(swipedItem);
     }
 
     private void updateSwapItemChosenBy(ItemCard item, String userId) {
@@ -130,12 +185,22 @@ public class MainActivity extends AppCompatActivity implements CardStackListener
         chosenBy.add(userId);
 
         db.collection("swap_items")
-                .document(String.valueOf(item.getSwapId()))
-                .update("chosenByUserIds", chosenBy)
-                .addOnSuccessListener(aVoid -> Log.d("Firestore", "SwapItem updated"))
-                .addOnFailureListener(e -> Log.e("FirestoreError", "SwapItem update failed", e));
-    }
+                .whereEqualTo("swapId", item.getSwapId())
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (!querySnapshot.isEmpty()) {
+                        DocumentSnapshot doc = querySnapshot.getDocuments().get(0);
 
+                        // Now you can update it
+                        doc.getReference()
+                                .update("chosenByUserIds", chosenBy, "status", "chosen")
+                                .addOnSuccessListener(aVoid -> Log.d("Firestore", "SwapItem updated"))
+                                .addOnFailureListener(e -> Log.e("FirestoreError", "SwapItem update failed", e));
+                    } else {
+                        Log.e("Firestore", "No swap_item found with swapId = " + item.getSwapId());
+                    }
+                });
+    }
     private void createChat(ItemCard swipedItem, FirebaseUser currentUser) {
         String chatId = swipedItem.getSwapId() + "_" + currentUser.getUid();
 

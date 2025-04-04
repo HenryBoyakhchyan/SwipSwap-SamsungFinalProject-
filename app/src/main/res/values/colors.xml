@@ -9,4 +9,7 @@
     <color name="primaryBlue">#295bbe</color>
     <color name="orange">#ffa314</color>
     <color name="white">#ffffff</color>
+    <color name="statusYellow">#ffffbb33</color>
+    <color name="statusGreen">#ff669900</color>
+    <color name="statusRed">#ffcc0000</color>
 </resources>

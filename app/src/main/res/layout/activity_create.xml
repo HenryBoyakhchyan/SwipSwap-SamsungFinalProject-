@@ -70,18 +70,25 @@
             <!-- Input Fields -->
 
 
-            <ListView
-                android:id="@+id/categoriesListView"
+            <TextView
+                android:id="@+id/categorySelector"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="50dp"
                 android:layout_marginHorizontal="16dp"
-                android:layout_marginBottom="16dp"
-                android:choiceMode="multipleChoice"
-                android:dividerHeight="1dp"
-                android:nestedScrollingEnabled="true"
-                android:overScrollMode="always"
-                android:scrollbars="vertical"
-                android:maxHeight="200dp" />
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/bg_input_field"
+                android:padding="12dp"
+                android:hint="Select Categories"
+                android:textColor="@android:color/black"
+                android:drawableEnd="@drawable/ic_dropdown"
+                android:drawableRight="@drawable/ic_dropdown"
+                android:inputType="none"
+                android:drawablePadding="8dp"
+                android:gravity="center_vertical"
+                android:focusable="false"
+                android:clickable="true"
+                android:scaleType="fitCenter"/>
+
             <EditText
                 android:id="@+id/description"
                 android:layout_width="match_parent"

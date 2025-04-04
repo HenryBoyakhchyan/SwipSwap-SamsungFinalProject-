@@ -22,6 +22,8 @@
         <activity android:name=".UserActivity"/>
         <activity android:name=".CreateActivity" />
         <activity android:name=".ChatActivity" />
+        <activity android:name=".MessagesActivity" />
+
 
         <activity android:name=".SplashScreenActivity"
             android:exported="true">

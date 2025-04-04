@@ -34,6 +34,7 @@ public class ChatActivity extends AppCompatActivity {
     private String currentUserEmail;
     private String currentUserId;
 
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,7 +48,8 @@ public class ChatActivity extends AppCompatActivity {
         chatRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         chatList = new ArrayList<>();
-        chatListAdapter = new ChatListAdapter(this, chatList);
+//        chatListAdapter = new ChatListAdapter(this, chatList);
+        chatListAdapter = new ChatListAdapter(ChatActivity.this, chatList); // ✅ good
         chatRecyclerView.setAdapter(chatListAdapter);
 
         db = FirebaseFirestore.getInstance();

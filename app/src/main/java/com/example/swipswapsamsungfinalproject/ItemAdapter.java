@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.google.firebase.Timestamp;
@@ -65,7 +66,20 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
             holder.itemImage.setImageResource(R.drawable.profile_placeholder); // Placeholder image
         }
 
-
+        // Set status icon
+        switch (item.getStatus()) {
+            case "chosen":
+                holder.status.setTextColor(ContextCompat.getColor(context, R.color.statusYellow));
+                break;
+            case "accepted":
+                holder.status.setTextColor(ContextCompat.getColor(context, R.color.statusRed));
+                break;
+            case "rejected":
+                holder.status.setTextColor(ContextCompat.getColor(context, R.color.statusYellow));
+                break;
+            default:
+                holder.status.setTextColor(ContextCompat.getColor(context, R.color.statusGreen));
+        }
     }
 
     @Override
