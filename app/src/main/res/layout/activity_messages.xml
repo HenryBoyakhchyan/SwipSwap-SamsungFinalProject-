@@ -146,68 +146,11 @@
     <LinearLayout
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
+        android:layout_height="1dp"
         android:layout_alignParentBottom="true"
-        android:background="@color/primaryBlue"
-        android:padding="10dp"
         android:orientation="horizontal"
         android:gravity="center">
 
-        <FrameLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:padding="8dp">
-            <ImageView
-                android:id="@+id/home"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/home"
-                android:tint="@color/white"
-                android:layout_gravity="center"/>
-        </FrameLayout>
-
-        <FrameLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:padding="8dp">
-            <ImageView
-                android:id="@+id/plus"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/plus"
-                android:tint="@color/white"
-                android:layout_gravity="center"/>
-        </FrameLayout>
-
-        <FrameLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:padding="8dp">
-            <ImageView
-                android:id="@+id/chat"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/icon_chat"
-                android:tint="@color/orange"
-                android:layout_gravity="center"/>
-        </FrameLayout>
-
-        <FrameLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:padding="8dp">
-            <ImageView
-                android:id="@+id/user"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/user"
-                android:tint="@color/white"
-                android:layout_gravity="center"/>
-        </FrameLayout>
     </LinearLayout>
 
 </RelativeLayout>
