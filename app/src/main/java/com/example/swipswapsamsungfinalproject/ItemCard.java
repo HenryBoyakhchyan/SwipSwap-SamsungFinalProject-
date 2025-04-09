@@ -1,5 +1,8 @@
 package com.example.swipswapsamsungfinalproject;
 
+import android.content.Intent;
+import android.widget.ImageView;
+
 import com.google.firebase.Timestamp;
 import java.util.List;
 

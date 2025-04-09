@@ -1,73 +1,78 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="8dp"
+    android:layout_margin="12dp"
+    app:cardCornerRadius="12dp"
     app:cardElevation="4dp">
 
-    <FrameLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
+        <!-- Image with max height -->
         <ImageView
             android:id="@+id/item_image"
-            android:layout_width="match_parent"
-            android:layout_height="300dp"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
             android:scaleType="centerCrop"
-            android:adjustViewBounds="true" />
+            android:adjustViewBounds="true"
+            android:src="@drawable/placeholder_image"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintDimensionRatio="H,16:9"
+            app:layout_constraintBottom_toTopOf="@+id/info_block" />
 
+        <!-- Info Block Below Image -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:id="@+id/info_block"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
             android:orientation="vertical"
             android:padding="12dp"
-            android:background="#80000000"> <!-- semi-transparent black -->
+            android:background="#FAFAFA"
+            app:layout_constraintTop_toBottomOf="@id/item_image"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
 
             <TextView
                 android:id="@+id/item_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Item Name"
+                android:text="Item Description"
                 android:textSize="18sp"
-                android:textColor="#FFFFFF"
                 android:textStyle="bold"
-                android:maxLines="2"
-                android:ellipsize="end"/>
+                android:textColor="#000000"
+                android:layout_marginBottom="6dp" />
 
             <TextView
                 android:id="@+id/item_categories"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Item Categories"
-                android:textSize="16sp"
-                android:textColor="#FFFFFF"
-                android:maxLines="1"
-                android:ellipsize="end"/>
+                android:text="Tags: Electronics, Gadgets"
+                android:textSize="14sp"
+                android:textColor="#444444"
+                android:layout_marginBottom="4dp" />
 
             <TextView
                 android:id="@+id/item_location"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Location"
+                android:text="Location: Yerevan"
                 android:textSize="14sp"
-                android:textColor="#DDDDDD"
-                android:maxLines="1"
-                android:ellipsize="end"/>
+                android:textColor="#666666"
+                android:layout_marginBottom="2dp"/>
 
             <TextView
                 android:id="@+id/item_published_date"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Published Date"
+                android:text="Published: Apr 2, 2025"
                 android:textSize="12sp"
-                android:textColor="#CCCCCC"/>
-
+                android:textColor="#999999"/>
         </LinearLayout>
 
-    </FrameLayout>
-
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.cardview.widget.CardView>

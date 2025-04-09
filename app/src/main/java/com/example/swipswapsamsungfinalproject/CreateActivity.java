@@ -52,6 +52,10 @@ public class CreateActivity extends AppCompatActivity {
     private List<String> allCategories = new ArrayList<>();
     private boolean[] selectedItems;
     private List<String> selectedCategories = new ArrayList<>();
+    private boolean editMode = false;
+    private long editingSwapId = -1;
+    private String existingImageBlob = null;
+    private String editingDocumentId = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,9 +70,6 @@ public class CreateActivity extends AppCompatActivity {
         etAddress = findViewById(R.id.address);
         publishButton = findViewById(R.id.publish);
         categorySelector = findViewById(R.id.categorySelector);
-        fetchCategoriesFromDB(); // Populate from swap_category
-
-        categorySelector.setOnClickListener(v -> showCategoryDialog());
         home = findViewById(R.id.home);
         chat = findViewById(R.id.chat);
         user = findViewById(R.id.user);
@@ -77,17 +78,55 @@ public class CreateActivity extends AppCompatActivity {
         progressDialog.setMessage("Uploading...");
 
         btnUploadImage.setOnClickListener(v -> openFileChooser());
-
         publishButton.setOnClickListener(v -> saveSwapItem());
 
-        home.setOnClickListener(view ->
-                startActivity(new Intent(CreateActivity.this, MainActivity.class)));
-        chat.setOnClickListener(view ->
-                startActivity(new Intent(CreateActivity.this, ChatActivity.class)));
-        user.setOnClickListener(view ->
-                startActivity(new Intent(CreateActivity.this, UserActivity.class)));
+        home.setOnClickListener(view -> startActivity(new Intent(CreateActivity.this, MainActivity.class)));
+        chat.setOnClickListener(view -> startActivity(new Intent(CreateActivity.this, ChatActivity.class)));
+        user.setOnClickListener(view -> startActivity(new Intent(CreateActivity.this, UserActivity.class)));
 
-      //  loadCategories();
+        fetchCategoriesFromDB();
+        categorySelector.setOnClickListener(v -> showCategoryDialog());
+
+        // Edit Mode Handling
+        editMode = getIntent().getBooleanExtra("editMode", false);
+        if (editMode) {
+            editingSwapId = getIntent().getLongExtra("swapId", -1);
+            if (editingSwapId != -1) {
+                loadSwapItemData(editingSwapId);
+            }
+        }
+
+    }
+
+    private void loadSwapItemData(long swapId) {
+        db.collection("swap_items")
+                .whereEqualTo("swapId", swapId)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(querySnapshots -> {
+                    if (!querySnapshots.isEmpty()) {
+                        DocumentSnapshot doc = querySnapshots.getDocuments().get(0);
+                        editingDocumentId = doc.getId(); // Save document ID
+                        etDescription.setText(doc.getString("description"));
+                        etAddress.setText(doc.getString("address"));
+
+                        List<String> categories = (List<String>) doc.get("categories");
+                        if (categories != null) {
+                            selectedCategories.clear();
+                            selectedCategories.addAll(categories);
+                            categorySelector.setText(String.join(", ", selectedCategories));
+                        }
+
+                        existingImageBlob = doc.getString("imageBlob"); // Save base64 image
+                        if (existingImageBlob != null && !existingImageBlob.isEmpty()) {
+                            byte[] decodedBytes = Base64.decode(existingImageBlob, Base64.DEFAULT);
+                            Bitmap bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+                            btnUploadImage.setImageBitmap(bitmap);
+                        }
+                    }
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Failed to load item data", Toast.LENGTH_SHORT).show());
     }
 
 
@@ -106,13 +145,21 @@ public class CreateActivity extends AppCompatActivity {
     private void showCategoryDialog() {
         String[] categoriesArray = allCategories.toArray(new String[0]);
 
+        // Update selectedItems based on selectedCategories before showing the dialog
+        for (int i = 0; i < allCategories.size(); i++) {
+            selectedItems[i] = selectedCategories.contains(allCategories.get(i));
+        }
+
         new AlertDialog.Builder(this)
                 .setTitle("Select Categories")
                 .setMultiChoiceItems(categoriesArray, selectedItems, (dialog, indexSelected, isChecked) -> {
+                    String selectedCategory = allCategories.get(indexSelected);
                     if (isChecked) {
-                        selectedCategories.add(allCategories.get(indexSelected));
+                        if (!selectedCategories.contains(selectedCategory)) {
+                            selectedCategories.add(selectedCategory);
+                        }
                     } else {
-                        selectedCategories.remove(allCategories.get(indexSelected));
+                        selectedCategories.remove(selectedCategory);
                     }
                 })
                 .setPositiveButton("OK", (dialog, which) -> {
@@ -121,6 +168,7 @@ public class CreateActivity extends AppCompatActivity {
                 .setNegativeButton("Cancel", null)
                 .show();
     }
+
 
     private void openFileChooser() {
         Intent intent = new Intent();
@@ -143,7 +191,7 @@ public class CreateActivity extends AppCompatActivity {
         String description = etDescription.getText().toString().trim();
         String address = etAddress.getText().toString().trim();
 
-        if (description.isEmpty() || address.isEmpty() || imageUri == null) {
+        if (description.isEmpty() || address.isEmpty() || (!editMode && imageUri == null)) {
             Toast.makeText(this, "All fields and image are required!", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -153,62 +201,77 @@ public class CreateActivity extends AppCompatActivity {
             return;
         }
 
-
         progressDialog.show();
 
-        db.collection("swap_items")
-                .orderBy("swapId", Query.Direction.DESCENDING)
-                .limit(1)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    int nextSwapId = 1;
-                    if (!queryDocumentSnapshots.isEmpty()) {
-                        DocumentSnapshot lastDoc = queryDocumentSnapshots.getDocuments().get(0);
-                        Long lastSwapId = lastDoc.getLong("swapId");
-                        if (lastSwapId != null) {
-                            nextSwapId = lastSwapId.intValue() + 1;
-                        }
-                    }
+        Runnable saveAction = () -> {
+            try {
+                String imageToSave;
+                if (imageUri != null) {
+                    InputStream inputStream = getContentResolver().openInputStream(imageUri);
+                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                    imageToSave = encodeToBase64(bitmap);
+                } else {
+                    imageToSave = existingImageBlob; // Reuse old image
+                }
 
-                    try {
-                        InputStream inputStream = getContentResolver().openInputStream(imageUri);
-                        Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                        String base64Image = encodeToBase64(bitmap);
+                Map<String, Object> swapItem = new HashMap<>();
+                swapItem.put("imageBlob", imageToSave);
+                swapItem.put("categories", selectedCategories);
+                swapItem.put("email", auth.getCurrentUser().getEmail());
+                swapItem.put("userId", auth.getCurrentUser().getUid());
+                swapItem.put("description", description);
+                swapItem.put("address", address);
+                swapItem.put("status", "published");
+                swapItem.put("publishedDate", new Date());
+                swapItem.put("chosenByUserIds", new ArrayList<>());
 
-                        Map<String, Object> swapItem = new HashMap<>();
-                        swapItem.put("swapId", nextSwapId);
-                        swapItem.put("imageBlob", base64Image);
-                        swapItem.put("categories", selectedCategories);
-                        swapItem.put("email", auth.getCurrentUser().getEmail());
-                        swapItem.put("userId", auth.getCurrentUser().getUid());
-                        swapItem.put("description", description);
-                        swapItem.put("address", address);
-                        swapItem.put("status", "published");
-                        swapItem.put("publishedDate", new Date());
-                        swapItem.put("chosenByUserIds", new ArrayList<>());
+                if (editMode && editingDocumentId != null) {
+                    // Only update fields (don't change swapId)
+                    db.collection("swap_items").document(editingDocumentId)
+                            .update(swapItem)
+                            .addOnSuccessListener(unused -> {
+                                progressDialog.dismiss();
+                                Toast.makeText(this, "Item updated!", Toast.LENGTH_SHORT).show();
+                                finish();
+                            })
+                            .addOnFailureListener(e -> {
+                                progressDialog.dismiss();
+                                Toast.makeText(this, "Update failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            });
+                } else {
+                    // Generate new swapId and create document
+                    db.collection("swap_items")
+                            .orderBy("swapId", Query.Direction.DESCENDING)
+                            .limit(1)
+                            .get()
+                            .addOnSuccessListener(queryDocumentSnapshots -> {
+                                int nextSwapId = 1;
+                                if (!queryDocumentSnapshots.isEmpty()) {
+                                    Long lastSwapId = queryDocumentSnapshots.getDocuments().get(0).getLong("swapId");
+                                    if (lastSwapId != null) nextSwapId = lastSwapId.intValue() + 1;
+                                }
 
+                                swapItem.put("swapId", nextSwapId);
 
-                        db.collection("swap_items").add(swapItem)
-                                .addOnSuccessListener(documentReference -> {
-                                    progressDialog.dismiss();
-                                    Toast.makeText(this, "Item Added! ID: ", Toast.LENGTH_SHORT).show();
-                                    Toast.makeText(this, "Item Added! ID: ", Toast.LENGTH_SHORT).show();
-                                    finish();
-                                })
-                                .addOnFailureListener(e -> {
-                                    progressDialog.dismiss();
-                                    Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                                });
-                    } catch (IOException e) {
-                        progressDialog.dismiss();
-                        e.printStackTrace();
-                        Toast.makeText(this, "Image Processing Failed", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    progressDialog.dismiss();
-                    Toast.makeText(this, "Error retrieving last SwapId: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+                                db.collection("swap_items").add(swapItem)
+                                        .addOnSuccessListener(documentReference -> {
+                                            progressDialog.dismiss();
+                                            Toast.makeText(this, "Item added!", Toast.LENGTH_SHORT).show();
+                                            finish();
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            progressDialog.dismiss();
+                                            Toast.makeText(this, "Add failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        });
+                            });
+                }
+            } catch (IOException e) {
+                progressDialog.dismiss();
+                Toast.makeText(this, "Image processing failed", Toast.LENGTH_SHORT).show();
+            }
+        };
+
+        new Thread(saveAction).start();
     }
 
     private String encodeToBase64(Bitmap image) {

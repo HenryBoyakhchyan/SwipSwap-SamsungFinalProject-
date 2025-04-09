@@ -1,6 +1,7 @@
 package com.example.swipswapsamsungfinalproject;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.util.Base64;
 import android.view.LayoutInflater;
@@ -22,6 +23,7 @@ import java.util.Locale;
 public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder> {
     private Context context;
     private List<ItemCard> itemList;
+
 
     public ItemAdapter(Context context, List<ItemCard> itemList) {
         this.context = context;
@@ -80,6 +82,14 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
             default:
                 holder.status.setTextColor(ContextCompat.getColor(context, R.color.statusGreen));
         }
+
+        holder.editItemButton.setOnClickListener(v -> {
+            Intent intent = new Intent(context, CreateActivity.class);
+            intent.putExtra("editMode", true);
+            intent.putExtra("swapId", item.getSwapId()); // or pass the whole item if needed
+            context.startActivity(intent);
+        });
+
     }
 
     @Override
@@ -106,6 +116,8 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
     public static class ItemViewHolder extends RecyclerView.ViewHolder {
         ImageView itemImage;
         TextView description, categories, address, status, publishedDate;
+        ImageView editItemButton;
+
 
         public ItemViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -115,6 +127,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
             address = itemView.findViewById(R.id.itemAddress);
             status = itemView.findViewById(R.id.itemStatus);
             publishedDate = itemView.findViewById(R.id.publishedDate);
+            editItemButton = itemView.findViewById(R.id.editItemButton);
         }
     }
 }

@@ -145,7 +145,7 @@ public class MessagesActivity extends AppCompatActivity {
         Map<String, Object> message = new HashMap<>();
         message.put("senderId", userId);
         message.put("text", text);
-        message.put("timestamp", System.currentTimeMillis());
+        message.put("timestamp", com.google.firebase.Timestamp.now());
 
         db.collection("chats").document(chatId)
                 .collection("messages")
