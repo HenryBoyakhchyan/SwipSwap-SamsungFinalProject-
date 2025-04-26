@@ -6,13 +6,13 @@ public class MessageItem {
     private String chatDocumentId;
     private String senderId;
     private String text;
-    private long timestamp;
+    private Timestamp timestamp;
 
     // Required empty constructor for Firestore serialization
     public MessageItem() {
     }
 
-    public MessageItem(String chatDocumentId, String senderId, String messageText, long timestamp) {
+    public MessageItem(String chatDocumentId, String senderId, String messageText, Timestamp timestamp) {
         this.chatDocumentId = chatDocumentId;
         this.senderId = senderId;
         this.text = messageText;
@@ -33,7 +33,7 @@ public class MessageItem {
         return text;
     }
 
-    public long getTimestamp() {
+    public Timestamp getTimestamp() {
         return timestamp;
     }
 
@@ -51,7 +51,7 @@ public class MessageItem {
         this.text = text;
     }
 
-    public void setTimestamp(long timestamp) {
+    public void setTimestamp(Timestamp timestamp) {
         this.timestamp = timestamp;
     }
 

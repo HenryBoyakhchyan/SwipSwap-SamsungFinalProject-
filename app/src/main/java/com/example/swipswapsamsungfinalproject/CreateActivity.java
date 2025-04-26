@@ -1,5 +1,7 @@
 package com.example.swipswapsamsungfinalproject;
 
+import static androidx.core.content.ContextCompat.startActivity;
+
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
