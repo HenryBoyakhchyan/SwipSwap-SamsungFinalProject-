@@ -43,22 +43,23 @@
 
             </LinearLayout>
 
-            <LinearLayout
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
                 android:padding="16dp">
 
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:id="@+id/userInfoLayout"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:gravity="center_vertical">
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true">
 
                     <ImageView
                         android:id="@+id/profileImage"
-                        android:layout_width="80dp"
-                        android:layout_height="80dp"
+                        android:layout_width="100dp"
+                        android:layout_height="100dp"
                         android:layout_marginEnd="16dp"
                         android:scaleType="centerCrop"
                         android:src="@drawable/profile_placeholder" />
@@ -95,7 +96,22 @@
                             android:textSize="16sp" />
                     </LinearLayout>
                 </LinearLayout>
-            </LinearLayout>
+
+                <ImageView
+                    android:id="@+id/edit_profile_button"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_alignParentBottom="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_margin="8dp"
+                    android:src="@drawable/edit"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Edit Profile"
+                    android:scaleType="centerInside"
+                    android:tint="@color/primaryBlue" />
+
+            </RelativeLayout>
+
 
             <TextView
                 android:layout_width="match_parent"
