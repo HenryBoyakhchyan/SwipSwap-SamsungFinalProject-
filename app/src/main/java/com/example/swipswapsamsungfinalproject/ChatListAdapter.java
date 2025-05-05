@@ -66,8 +66,13 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatVi
                 holder.statusIcon.setImageResource(R.drawable.ic_heart);
                 holder.statusIcon.setVisibility(View.VISIBLE);
                 break;
-            case "rejected":
-                holder.statusIcon.setImageResource(R.drawable.ic_rejected);
+            case "declined":
+                holder.statusIcon.setImageResource(R.drawable.rejected);
+                holder.statusIcon.setVisibility(View.VISIBLE);
+                break;
+
+            case "given":
+                holder.statusIcon.setImageResource(R.drawable.given);
                 holder.statusIcon.setVisibility(View.VISIBLE);
                 break;
             default:
@@ -95,6 +100,8 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatVi
     public int getItemCount() {
         return chatList.size();
     }
+
+
 
     static class ChatViewHolder extends RecyclerView.ViewHolder {
         ImageView itemImage, statusIcon;

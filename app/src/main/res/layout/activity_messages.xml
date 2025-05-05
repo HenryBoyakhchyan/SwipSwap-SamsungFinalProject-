@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/messagesRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF">
+    android:background="#FFFFFF"
+    tools:context=".MessagesActivity">
 
     <!-- Header -->
     <RelativeLayout
@@ -86,24 +89,47 @@
                 android:textColor="#666666"
                 android:textSize="14sp" />
 
-            <LinearLayout
+            <TextView
+                android:id="@+id/swapItemStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:text="Item Status"
+                android:textColor="#666666"
+                android:textSize="14sp"
+                android:layout_marginTop="4dp" />
+
+            <!-- Buttons Container -->
+            <LinearLayout
+                android:id="@+id/buttonLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginTop="8dp">
+                android:layout_marginTop="8dp"
+                android:gravity="start"
+                >
 
                 <Button
                     android:id="@+id/acceptButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Accept" />
+                    android:text="Accept"
+                    android:visibility="gone" />
 
                 <Button
                     android:id="@+id/declineButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Decline"
-                    android:layout_marginStart="8dp" />
+                    android:layout_marginStart="8dp"
+                    android:visibility="gone" />
+
+                <Button
+                    android:id="@+id/takenButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Taken"
+                    android:layout_marginStart="8dp"
+                    android:visibility="gone" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
@@ -134,12 +160,15 @@
             android:background="@drawable/bg_input_field"
             android:padding="12dp" />
 
+
+
         <Button
             android:id="@+id/sendButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Send"
-            android:layout_marginTop="6dp" />
+            android:layout_marginTop="6dp"
+            android:drawable="@drawable/ic_send" />
     </LinearLayout>
 
     <!-- Bottom Navigation -->
@@ -149,8 +178,5 @@
         android:layout_height="1dp"
         android:layout_alignParentBottom="true"
         android:orientation="horizontal"
-        android:gravity="center">
-
-    </LinearLayout>
-
+        android:gravity="center" />
 </RelativeLayout>

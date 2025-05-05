@@ -13,7 +13,7 @@ public class ChatItem {
     private String clientUserId;
     private String clientUserEmail;
     private Timestamp creationDate;
-    private String status; // chosen, accepted, rejected
+    private String status; // chosen, accepted, declined, given
     private int unreadMessageCount;
     private Timestamp lastMessageTimestamp;
 

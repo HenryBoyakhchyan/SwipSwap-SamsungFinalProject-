@@ -1,19 +1,28 @@
+
 package com.example.swipswapsamsungfinalproject;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -27,114 +36,136 @@ public class MessagesActivity extends AppCompatActivity {
 
     private RecyclerView messagesRecyclerView;
     private EditText messageInput;
+    private Button sendButton, acceptButton, declineButton, takenButton;
+    private ImageView backButton, swapItemImage;
+    private TextView swapItemDescription, swapItemAddress, swapItemStatus;
 
-    private Button sendButton, acceptButton, declineButton;
     private MessageAdapter messagesAdapter;
     private List<MessageItem> messageList = new ArrayList<>();
 
     private FirebaseFirestore db;
     private FirebaseAuth auth;
-
-    private String chatId;
-    private String userId;
-    private ImageView backButton;
+    private String chatId, userId, currentStatus;
+    private boolean isOwner = false;
+    private String swapOwnerId = "", clientUserId = "";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_messages);
 
-        // Initialize Firebase
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
-
-        // Get current user ID
         userId = auth.getCurrentUser().getUid();
-
-        // Get chat ID from intent
         chatId = getIntent().getStringExtra("chatId");
+
         if (chatId == null) {
-            Log.e("MessagesActivity", "chatId is null. Returning to main screen.");
-            startActivity(new Intent(this, MainActivity.class));
+            Toast.makeText(this, "Chat ID not found", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
-        // Initialize views
+        // Bind views
         messagesRecyclerView = findViewById(R.id.messagesRecyclerView);
         messageInput = findViewById(R.id.messageInput);
         sendButton = findViewById(R.id.sendButton);
         acceptButton = findViewById(R.id.acceptButton);
         declineButton = findViewById(R.id.declineButton);
+        takenButton = findViewById(R.id.takenButton);
         backButton = findViewById(R.id.arrowBack);
+        swapItemImage = findViewById(R.id.swapItemImage);
+        swapItemDescription = findViewById(R.id.swapItemDescription);
+        swapItemAddress = findViewById(R.id.swapItemAddress);
+        swapItemStatus = findViewById(R.id.swapItemStatus);
 
-        // Set up RecyclerView
         messagesAdapter = new MessageAdapter(this, messageList);
         messagesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         messagesRecyclerView.setAdapter(messagesAdapter);
 
-        // Load existing messages
-        loadMessages(chatId);
+        loadChatInfo();
 
-        // Button Listeners
         sendButton.setOnClickListener(v -> sendMessage());
         acceptButton.setOnClickListener(v -> acceptUser());
         declineButton.setOnClickListener(v -> declineUser());
-        backButton.setOnClickListener(v -> startActivity(new Intent(MessagesActivity.this, ChatActivity.class)));
-
-        populateSwapItemDetails(chatId);
-
+        takenButton.setOnClickListener(v -> markAsTaken());
+        backButton.setOnClickListener(v -> finish());
     }
 
-    private void populateSwapItemDetails(String chatId) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-
+    private void loadChatInfo() {
         db.collection("chats").document(chatId).get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        String imageBlob = documentSnapshot.getString("swapItemImageBlob");
-                        String description = documentSnapshot.getString("swapItemDescription");
-                        String address = documentSnapshot.getString("swapItemAddress");
+                .addOnSuccessListener(snapshot -> {
+                    if (!snapshot.exists()) return;
 
-                        ImageView swapItemImage = findViewById(R.id.swapItemImage);
-                        TextView swapItemDescription = findViewById(R.id.swapItemDescription);
-                        TextView swapItemAddress = findViewById(R.id.swapItemAddress);
+                    currentStatus = snapshot.getString("status");
+                    swapOwnerId = snapshot.getString("swapOwnerId");
+                    clientUserId = snapshot.getString("clientUserId");
 
-                        if (description != null) swapItemDescription.setText(description);
-                        if (address != null) swapItemAddress.setText(address);
+                    isOwner = userId.equals(swapOwnerId);
 
-                        if (imageBlob != null && !imageBlob.isEmpty()) {
-                            byte[] decodedString = android.util.Base64.decode(imageBlob, android.util.Base64.DEFAULT);
-                            android.graphics.Bitmap decodedByte = android.graphics.BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-                            swapItemImage.setImageBitmap(decodedByte);
-                        }
-                    } else {
-                        Log.e("MessagesActivity", "No such chat document: " + chatId);
+                    String imgBlob = snapshot.getString("swapItemImageBlob");
+                    if (imgBlob != null && !imgBlob.isEmpty()) {
+                        byte[] imageBytes = Base64.decode(imgBlob, Base64.DEFAULT);
+                        Bitmap bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+                        swapItemImage.setImageBitmap(bitmap);
                     }
-                })
-                .addOnFailureListener(e -> Log.e("MessagesActivity", "Failed to fetch chat data: ", e));
+
+                    swapItemDescription.setText(snapshot.getString("swapItemDescription"));
+                    swapItemAddress.setText(snapshot.getString("swapItemAddress"));
+                    swapItemStatus.setText(currentStatus);
+
+                    updateUIBasedOnStatus();
+                    loadMessages();
+                });
     }
 
-    private void loadMessages(String chatId) {
+    private void updateUIBasedOnStatus() {
+        messageInput.setEnabled(true);
+        sendButton.setEnabled(true);
+
+        acceptButton.setVisibility(View.GONE);
+        declineButton.setVisibility(View.GONE);
+        takenButton.setVisibility(View.GONE);
+
+        switch (currentStatus) {
+            case "chosen":
+                if (isOwner) {
+                    acceptButton.setVisibility(View.VISIBLE);
+                    declineButton.setVisibility(View.VISIBLE);
+                } else if (userId.equals(clientUserId)) {
+                    declineButton.setVisibility(View.VISIBLE);
+                }
+                break;
+            case "declined":
+                messageInput.setEnabled(false);
+                sendButton.setEnabled(false);
+                break;
+            case "accepted":
+                if (!isOwner && userId.equals(clientUserId)) {
+                    takenButton.setVisibility(View.VISIBLE);
+                }
+                break;
+            case "given":
+                // No buttons visible, messaging allowed
+                break;
+        }
+    }
+
+    private void loadMessages() {
         db.collection("chats").document(chatId).collection("messages")
                 .orderBy("timestamp")
                 .addSnapshotListener((snapshots, error) -> {
                     if (error != null) {
-                        Log.e("MessagesActivity", "Error loading messages", error);
+                        Log.e("MessagesActivity", "Message load error", error);
                         return;
                     }
 
                     messageList.clear();
-                    if (snapshots != null) {
-                        for (DocumentSnapshot doc : snapshots) {
-                            MessageItem msg = doc.toObject(MessageItem.class);
-                            if (msg != null) {
-                                messageList.add(msg);
-                            }
-                        }
-                        messagesAdapter.notifyDataSetChanged();
-                        messagesRecyclerView.scrollToPosition(messageList.size() - 1);
+                    for (DocumentSnapshot doc : snapshots.getDocuments()) {
+                        MessageItem message = doc.toObject(MessageItem.class);
+                        messageList.add(message);
                     }
+                    messagesAdapter.notifyDataSetChanged();
+                    messagesRecyclerView.scrollToPosition(messageList.size() - 1);
                 });
     }
 
@@ -145,26 +176,63 @@ public class MessagesActivity extends AppCompatActivity {
         Map<String, Object> message = new HashMap<>();
         message.put("senderId", userId);
         message.put("text", text);
-        message.put("timestamp", com.google.firebase.Timestamp.now());
+        message.put("timestamp", Timestamp.now());
 
-        db.collection("chats").document(chatId)
-                .collection("messages")
+        db.collection("chats").document(chatId).collection("messages")
                 .add(message)
-                .addOnSuccessListener(documentReference -> messageInput.setText(""))
-                .addOnFailureListener(e -> Log.e("MessagesActivity", "Failed to send message", e));
+                .addOnSuccessListener(aVoid -> messageInput.setText(""));
     }
 
     private void acceptUser() {
-        db.collection("chats").document(chatId)
-                .update("status", "accepted")
-                .addOnSuccessListener(aVoid -> Log.d("MessagesActivity", "User accepted"))
-                .addOnFailureListener(e -> Log.e("MessagesActivity", "Failed to accept", e));
+        db.collection("chats").document(chatId).update("status", "accepted")
+                .addOnSuccessListener(unused -> {
+                    declineOtherClients();
+                    Toast.makeText(this, "Accepted", Toast.LENGTH_SHORT).show();
+                    currentStatus = "accepted";
+                    updateUIBasedOnStatus();
+                });
+    }
+
+    private void declineOtherClients() {
+        db.collection("chats")
+                .whereEqualTo("swapOwnerId", swapOwnerId)
+                .whereEqualTo("status", "chosen")
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                        if (!doc.getId().equals(chatId)) {
+                            doc.getReference().update("status", "declined");
+                        }
+                    }
+                });
     }
 
     private void declineUser() {
-        db.collection("chats").document(chatId)
-                .update("status", "declined")
-                .addOnSuccessListener(aVoid -> Log.d("MessagesActivity", "User declined"))
-                .addOnFailureListener(e -> Log.e("MessagesActivity", "Failed to decline", e));
+        db.collection("chats").document(chatId).update("status", "declined")
+                .addOnSuccessListener(unused -> {
+                    Toast.makeText(this, "Declined", Toast.LENGTH_SHORT).show();
+                    currentStatus = "declined";
+                    updateUIBasedOnStatus();
+                });
     }
+
+    private void markAsTaken() {
+        db.collection("chats").document(chatId).update("status", "given")
+                .addOnSuccessListener(unused -> {
+                    incrementField("Users", swapOwnerId, "given");
+                    incrementField("Users", clientUserId, "taken");
+                    Toast.makeText(this, "Marked as Given", Toast.LENGTH_SHORT).show();
+                    currentStatus = "given";
+                    updateUIBasedOnStatus();
+                });
+    }
+
+    private void incrementField(String collection, String userId, String field) {
+        db.collection(collection).document(userId).get()
+                .addOnSuccessListener(snapshot -> {
+                    long current = snapshot.contains(field) ? snapshot.getLong(field) : 0;
+                    db.collection(collection).document(userId).update(field, current + 1);
+                });
+    }
+
 }
