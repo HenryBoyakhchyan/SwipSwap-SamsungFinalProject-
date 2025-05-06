@@ -134,6 +134,7 @@ public class CreateActivity extends AppCompatActivity {
 
     private void fetchCategoriesFromDB() {
         db.collection("swap_category")
+                .orderBy("displayOrder", Query.Direction.ASCENDING)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     allCategories.clear();
