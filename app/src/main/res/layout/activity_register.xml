@@ -115,6 +115,22 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/etEmail" />
+            <!-- Password Input -->
+            <EditText
+                android:id="@+id/confirmPassword"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:hint="Confirm Password"
+                android:paddingHorizontal="16dp"
+                android:inputType="textPassword"
+                android:background="@drawable/edit_text_background"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="12dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/etPassword" />
 
             <!-- Signup Button -->
             <Button
@@ -131,22 +147,22 @@
                 android:layout_marginBottom="12dp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/etPassword" />
+                app:layout_constraintTop_toBottomOf="@id/confirmPassword" />
 
             <!-- Illustration -->
             <ImageView
                 android:id="@+id/imgIllustration"
-                android:layout_width="272dp"
-                android:layout_height="227dp"
+                android:layout_width="202dp"
+                android:layout_height="158dp"
                 android:layout_marginTop="24dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/sign_up"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.509"
+                app:layout_constraintHorizontal_bias="0.496"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/btnSignUp"
-                app:layout_constraintVertical_bias="1.0" />
+                app:layout_constraintVertical_bias="0.571" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>

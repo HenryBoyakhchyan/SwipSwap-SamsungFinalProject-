@@ -13,7 +13,7 @@ import com.google.firebase.FirebaseApp;
 
 public class RegisterActivity extends AppCompatActivity {
     private AuthenticationHelper authHelper;
-    private EditText etFullName, etEmail, etPassword;
+    private EditText etFullName, etEmail, etPassword, confirmPassword;
     private Button btnSignUp;
     private TextView btnSignIn;
 
@@ -27,6 +27,7 @@ public class RegisterActivity extends AppCompatActivity {
         etFullName = findViewById(R.id.etFullName);
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
+        confirmPassword = findViewById(R.id.confirmPassword);
         btnSignUp = findViewById(R.id.btnSignUp);
         btnSignIn = findViewById(R.id.tvSignInLink);
 
@@ -41,9 +42,15 @@ public class RegisterActivity extends AppCompatActivity {
         String fullName = etFullName.getText().toString().trim();
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
+        String confPassword = confirmPassword.getText().toString().trim();
 
-        if (fullName.isEmpty() || email.isEmpty() || password.isEmpty()) {
+        if (fullName.isEmpty() || email.isEmpty() || password.isEmpty() || confPassword.isEmpty()) {
             Toast.makeText(this, "All fields are required!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if ( !password.equals(confPassword)) {
+            Toast.makeText(this, "Passwords do not match. Please try again!", Toast.LENGTH_SHORT).show();
             return;
         }
 
