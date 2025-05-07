@@ -14,6 +14,7 @@ import java.util.Map;
 public class AuthenticationHelper {
     private final FirebaseAuth auth;
     private final DatabaseReference database;
+    private final FirebaseAuth mAuth = FirebaseAuth.getInstance();
 
     public AuthenticationHelper() {
         auth = FirebaseAuth.getInstance();
@@ -25,43 +26,45 @@ public class AuthenticationHelper {
         void onFailure(String error);
     }
     // Sign Up User
+
     public void signUp(String email, String password, String fullName, Activity activity, AuthCallback callback) {
-        auth.createUserWithEmailAndPassword(email, password)
+        mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(activity, task -> {
                     if (task.isSuccessful()) {
-                        FirebaseUser user = auth.getCurrentUser();
+                        FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            String userId = user.getUid();
-                            Map<String, Object> userData = new HashMap<>();
-                            userData.put("fullName", fullName);
-                            userData.put("email", email);
-
-                            database.child(userId).setValue(userData)
-                                    .addOnCompleteListener(dbTask -> {
-                                        if (dbTask.isSuccessful()) {
-                                            callback.onSuccess("Registration successful!");
+                            user.sendEmailVerification()
+                                    .addOnCompleteListener(emailTask -> {
+                                        if (emailTask.isSuccessful()) {
+                                            callback.onSuccess("Verification email sent. Please check your inbox.");
                                         } else {
-                                            callback.onFailure("Database error: " + dbTask.getException().getMessage());
+                                            callback.onFailure("Failed to send verification email.");
                                         }
                                     });
                         }
                     } else {
-                        callback.onFailure("Auth error: " + task.getException().getMessage());
-                    }
-                });
-    }
-    // Sign In User
-    public void signIn(String email, String password, Context context, AuthCallback callback) {
-        auth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener((Activity) context, task -> {
-                    if (task.isSuccessful()) {
-                        callback.onSuccess("Login successful!");
-                    } else {
-                        callback.onFailure("Login failed: " + task.getException().getMessage());
+                        callback.onFailure("Registration failed: " + task.getException().getMessage());
                     }
                 });
     }
 
+     // Sign In User
+     public void signIn(String email, String password, Activity activity, AuthCallback callback) {
+         mAuth.signInWithEmailAndPassword(email, password)
+                 .addOnCompleteListener(activity, task -> {
+                     if (task.isSuccessful()) {
+                         FirebaseUser user = mAuth.getCurrentUser();
+                         if (user != null && user.isEmailVerified()) {
+                             callback.onSuccess("Login successful.");
+                         } else {
+                             mAuth.signOut();
+                             callback.onFailure("Please verify your email before signing in.");
+                         }
+                     } else {
+                         callback.onFailure("Login failed: " + task.getException().getMessage());
+                     }
+                 });
+     }
     // Reset Password
     public static void resetPassword(String email, Context context, AuthCallback callback) {
 //        auth.sendPasswordResetEmail(email)
