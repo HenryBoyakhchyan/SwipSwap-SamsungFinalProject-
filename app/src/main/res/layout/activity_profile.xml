@@ -94,16 +94,34 @@
                             android:text="User Address"
                             android:textColor="@color/primaryBlue"
                             android:textSize="16sp" />
-
-                        <TextView
-                            android:id="@+id/signOutLink"
-                            android:layout_width="match_parent"
+                        <LinearLayout
+                            android:id="@+id/itemStatsContainer"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Sign Out"
-                            android:textColor="@color/orange"
-                            android:textSize="16sp"
-                            android:textStyle="bold" />
+                            android:orientation="horizontal"
+                            android:layout_marginTop="8dp">
+
+                            <TextView
+                                android:id="@+id/tvGivenCount"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Given: 0"
+                                android:textSize="14sp"
+                                android:textColor="@android:color/holo_green_dark"
+                                android:layout_marginEnd="16dp" />
+
+                            <TextView
+                                android:id="@+id/tvTakenCount"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Taken: 0"
+                                android:textSize="14sp"
+                                android:textColor="@android:color/darker_gray" />
+
+                        </LinearLayout>
+
                     </LinearLayout>
+
                 </LinearLayout>
 
                 <ImageView
@@ -121,6 +139,23 @@
 
             </RelativeLayout>
 
+            <!-- Properly aligned Log Out button -->
+
+
+            <TextView
+                android:id="@+id/signOutLink"
+                android:layout_width="108dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="16dp"
+                android:background="@drawable/rounded_button_bg"
+                android:gravity="center"
+                android:paddingVertical="12dp"
+                android:text="Log Out"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:layout_width="match_parent"

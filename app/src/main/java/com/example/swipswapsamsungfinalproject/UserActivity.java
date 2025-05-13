@@ -36,7 +36,7 @@ import java.util.List;
 public class UserActivity extends AppCompatActivity {
 
     private ImageView profileImage, home, plus, chat, user, editProfileButton;
-    private TextView userName, userEmail, userAddress;
+    private TextView userName, userEmail, userAddress, tvGivenCount, tvTakenCount;
     private RecyclerView recyclerViewUserItems;
     private ItemAdapter itemAdapter;
     private List<ItemCard> itemList = new ArrayList<>();
@@ -67,6 +67,10 @@ public class UserActivity extends AppCompatActivity {
         home = findViewById(R.id.home);
         user = findViewById(R.id.user);
         editProfileButton = findViewById(R.id.edit_profile_button);
+
+        tvGivenCount = findViewById(R.id.tvGivenCount);
+        tvTakenCount = findViewById(R.id.tvTakenCount);
+
 
         // Setup RecyclerView
         itemAdapter = new ItemAdapter(this, itemList);
@@ -123,6 +127,13 @@ public class UserActivity extends AppCompatActivity {
                             userName.setText(user.getName());
                             userAddress.setText(user.getAddress());
                             userEmail.setText(user.getEmail());
+                            int givenCount = user.getGiven();
+                            int takenCount = user.getTaken();
+
+                            String givenText = "Given: " + givenCount;
+                            String takenText = "Taken: " + takenCount;
+                            tvGivenCount.setText(givenText);
+                            tvTakenCount.setText(takenText);
 
                             String blob = user.getProfileImageBlob();
                             if (blob != null && !blob.isEmpty()) {

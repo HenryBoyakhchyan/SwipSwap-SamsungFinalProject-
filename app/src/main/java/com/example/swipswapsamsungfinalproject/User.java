@@ -9,19 +9,25 @@ public class User {
     private String address;
     private String profileImageBlob;
     private Timestamp joinedDate;
+    private int given;
+    private int taken;
+
 
     // Empty constructor required by Firestore
     public User() {
     }
 
     // Full constructor
-    public User(String userId, String name, String email, String address, String profileImageBlob, Timestamp joinedDate) {
+    public User(String userId, String name, String email, String address, String profileImageBlob, Timestamp joinedDate
+                    , int given, int taken) {
         this.userId = userId;
         this.name = name;
         this.email = email;
         this.address = address;
         this.profileImageBlob = profileImageBlob;
         this.joinedDate = joinedDate;
+        this.taken = taken;
+        this.given = given;
     }
 
     // Getters
@@ -72,5 +78,21 @@ public class User {
 
     public void setJoinedDate(Timestamp joinedDate) {
         this.joinedDate = joinedDate;
+    }
+
+    public int getTaken() {
+        return taken;
+    }
+
+    public void setTaken(int taken) {
+        this.taken = taken;
+    }
+
+    public int getGiven() {
+        return given;
+    }
+
+    public void setGiven(int given) {
+        this.given = given;
     }
 }
