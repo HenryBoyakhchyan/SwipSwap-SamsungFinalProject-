@@ -2,56 +2,63 @@ package com.example.swipswapsamsungfinalproject;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-
-import org.w3c.dom.Text;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class ForgotPasswordActivity extends AppCompatActivity {
-    private AuthenticationHelper authHelper;
+
     private EditText etEmail;
     private Button btnResetPassword;
-    private TextView btnSignIn;
+    private TextView tvSignInLink;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_forgot_password);
 
-        authHelper = new AuthenticationHelper();
         etEmail = findViewById(R.id.etEmail);
         btnResetPassword = findViewById(R.id.btnResetPassword);
-        btnSignIn = findViewById(R.id.tvSignInLink);
+        tvSignInLink = findViewById(R.id.tvSignInLink);
 
-        btnSignIn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(ForgotPasswordActivity.this, LoginActivity.class));
-            }
-        });
+        mAuth = FirebaseAuth.getInstance();
+
+        tvSignInLink.setOnClickListener(v ->
+                startActivity(new Intent(ForgotPasswordActivity.this, LoginActivity.class))
+        );
 
         btnResetPassword.setOnClickListener(v -> {
             String email = etEmail.getText().toString().trim();
-            if (email.isEmpty()) {
+
+            if (TextUtils.isEmpty(email)) {
                 Toast.makeText(ForgotPasswordActivity.this, "Enter your email!", Toast.LENGTH_SHORT).show();
+
                 return;
             }
 
-            AuthenticationHelper.resetPassword(email, ForgotPasswordActivity.this, new AuthenticationHelper.AuthCallback() {
-                @Override
-                public void onSuccess(String message) {
-                    Toast.makeText(ForgotPasswordActivity.this, message, Toast.LENGTH_SHORT).show();
-                }
-
-                @Override
-                public void onFailure(String error) {
-                    Toast.makeText(ForgotPasswordActivity.this, error, Toast.LENGTH_SHORT).show();
-                }
-            });
+            mAuth.sendPasswordResetEmail(email)
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(ForgotPasswordActivity.this,
+                                    "Reset link sent to " + email,
+                                    Toast.LENGTH_LONG).show();
+                            new android.os.Handler().postDelayed(() -> {
+                                Intent intent = new Intent(ForgotPasswordActivity.this, LoginActivity.class);
+                                startActivity(intent);
+                            }, 1000);
+                        } else {
+                            Toast.makeText(ForgotPasswordActivity.this,
+                                    "Failed to send reset email",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    });
         });
     }
 }
