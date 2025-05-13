@@ -102,6 +102,16 @@ public class UserActivity extends AppCompatActivity {
         // Edit Button
         editProfileButton.setOnClickListener(v -> showEditProfileDialog());
         profileImage.setOnClickListener(v -> showEditProfileDialog());
+
+        TextView signOutLink = findViewById(R.id.signOutLink);
+        signOutLink.setOnClickListener(v -> {
+            auth.signOut();
+            Intent intent = new Intent(UserActivity.this, LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
+        });
+
     }
     private void loadUserProfile(String userId) {
         firestoreDb.collection(USERS_COLLECTION).document(userId)
