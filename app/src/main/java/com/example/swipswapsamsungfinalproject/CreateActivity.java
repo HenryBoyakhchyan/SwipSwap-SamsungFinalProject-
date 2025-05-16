@@ -235,7 +235,9 @@ public class CreateActivity extends AppCompatActivity {
                             .addOnSuccessListener(unused -> {
                                 progressDialog.dismiss();
                                 Toast.makeText(this, "Item updated!", Toast.LENGTH_SHORT).show();
-                                finish();
+                                //finish();
+                                startActivity(new Intent(CreateActivity.this, UserActivity.class));
+
                             })
                             .addOnFailureListener(e -> {
                                 progressDialog.dismiss();
