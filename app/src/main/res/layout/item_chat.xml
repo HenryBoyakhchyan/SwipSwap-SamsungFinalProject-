@@ -10,7 +10,7 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="100dp"
+        android:layout_height="120dp"
         android:padding="8dp">
 
         <!-- Swap Item Image -->
@@ -53,6 +53,20 @@
             android:maxLines="1"
             android:ellipsize="end" />
 
+        <!-- Contact  -->
+        <TextView
+            android:id="@+id/chat_item_contact"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/chat_item_address"
+            android:layout_toEndOf="@id/itemImage"
+            android:paddingTop="4dp"
+            android:text="Contact"
+            android:textColor="#666666"
+            android:textSize="14sp"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
         <!-- Status Icon (top right corner) -->
         <ImageView
             android:id="@+id/statusIcon"
@@ -64,6 +78,19 @@
             android:contentDescription="Status Icon"
             android:src="@drawable/ic_checked" />
 
+        <TextView
+            android:id="@+id/owner_label"
+            android:layout_width="55dp"
+            android:layout_height="28dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_margin="6dp"
+            android:background="@drawable/badge_background"
+            android:gravity="center"
+            android:text="my item"
+            android:textColor="@android:color/white"
+            android:textSize="12sp"
+            android:textStyle="bold" />
         <!-- Unread Badge (bottom right corner) -->
         <TextView
             android:id="@+id/unreadMessagesCount"

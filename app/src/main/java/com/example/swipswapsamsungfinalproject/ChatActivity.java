@@ -46,12 +46,6 @@ public class ChatActivity extends AppCompatActivity {
 
         chatRecyclerView = findViewById(R.id.chatRecyclerView);
         chatRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        chatList = new ArrayList<>();
-//        chatListAdapter = new ChatListAdapter(this, chatList);
-        chatListAdapter = new ChatListAdapter(ChatActivity.this, chatList); // ✅ good
-        chatRecyclerView.setAdapter(chatListAdapter);
-
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
 
@@ -60,6 +54,12 @@ public class ChatActivity extends AppCompatActivity {
 
         currentUserEmail = currentUser.getEmail();
         currentUserId = currentUser.getUid();
+
+        chatList = new ArrayList<>();
+//        chatListAdapter = new ChatListAdapter(this, chatList);
+        chatListAdapter = new ChatListAdapter(ChatActivity.this, chatList, currentUserEmail); // ✅ good
+        chatRecyclerView.setAdapter(chatListAdapter);
+
 
         loadChatList();
 

@@ -16,16 +16,24 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
 import java.util.List;
 
 public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatViewHolder> {
 
     private Context context;
-    private List<ChatItem> chatList;
 
-    public ChatListAdapter(Context context, List<ChatItem> chatList) {
+    private List<ChatItem> chatList;
+    private String currentUserEmail;
+    public boolean youOwner;
+
+
+    public ChatListAdapter(Context context, List<ChatItem> chatList, String authEmail) {
         this.context = context;
         this.chatList = chatList;
+        this.currentUserEmail = authEmail;
     }
 
     @NonNull
@@ -36,13 +44,27 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatVi
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ChatViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ChatViewHolder holder, int position ) {
+
         ChatItem chat = chatList.get(position);
+        youOwner = (chat.getSwapOwnerEmail() != null
+                && chat.getSwapOwnerEmail().equals(currentUserEmail));
+
+        if (youOwner) {
+            holder.ownerLabel.setVisibility(View.VISIBLE);
+        } else {
+            holder.ownerLabel.setVisibility(View.GONE);
+        }
+
 
         // Set description and address
         holder.itemDescription.setText(chat.getSwapItemDescription() != null ? chat.getSwapItemDescription() : "");
         holder.itemAddress.setText(chat.getSwapItemAddress() != null ? chat.getSwapItemAddress() : "");
-
+       if( youOwner ) {
+           holder.itemContact.setText(chat.getClientUserEmail() != null ? "contact: " + chat.getClientUserEmail() : "");
+       } else{
+           holder.itemContact.setText(chat.getSwapOwnerEmail() != null ? "contact: " + chat.getSwapOwnerEmail() : "");
+       }
         // Decode and set image from Base64
         if (chat.getSwapItemImageBlob() != null && !chat.getSwapItemImageBlob().isEmpty()) {
             try {
@@ -105,7 +127,7 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatVi
 
     static class ChatViewHolder extends RecyclerView.ViewHolder {
         ImageView itemImage, statusIcon;
-        TextView itemDescription, itemAddress, unreadMessagesCount;
+        TextView itemDescription, itemAddress, itemContact, ownerLabel, unreadMessagesCount;
 
         public ChatViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -113,6 +135,8 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatVi
             statusIcon = itemView.findViewById(R.id.statusIcon);
             itemDescription = itemView.findViewById(R.id.chat_item_description);
             itemAddress = itemView.findViewById(R.id.chat_item_address);
+            itemContact = itemView.findViewById(R.id.chat_item_contact);
+            ownerLabel = itemView.findViewById(R.id.owner_label);
             unreadMessagesCount = itemView.findViewById(R.id.unreadMessagesCount);
         }
     }
