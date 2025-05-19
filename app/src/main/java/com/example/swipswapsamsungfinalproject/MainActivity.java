@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.yuyakaido.android.cardstackview.*;
@@ -211,9 +212,9 @@ public class MainActivity extends AppCompatActivity implements CardStackListener
         chatData.put("swapOwnerEmail", swipedItem.getEmail());
         chatData.put("clientUserId", currentUser.getUid());
         chatData.put("clientUserEmail", currentUser.getEmail());
-        chatData.put("creationDate", new Date());
+        chatData.put("creationDate", FieldValue.serverTimestamp());
         chatData.put("lastMessage", "");
-        chatData.put("lastMessageTimestamp", new Date());
+        chatData.put("lastMessageTimestamp", FieldValue.serverTimestamp());
         chatData.put("status", "chosen");
         chatData.put("unreadCounts", 0);
 

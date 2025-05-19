@@ -25,6 +25,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
@@ -176,7 +177,7 @@ public class MessagesActivity extends AppCompatActivity {
         Map<String, Object> message = new HashMap<>();
         message.put("senderId", userId);
         message.put("text", text);
-        message.put("timestamp", Timestamp.now());
+        message.put("timestamp", FieldValue.serverTimestamp());
 
         db.collection("chats").document(chatId).collection("messages")
                 .add(message)

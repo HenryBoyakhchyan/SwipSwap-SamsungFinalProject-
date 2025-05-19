@@ -2,6 +2,7 @@ package com.example.swipswapsamsungfinalproject;
 
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.Date;
 import java.util.HashMap;
@@ -33,7 +34,7 @@ public class DatabaseHelper {
                         newUser.put("email", email);
                         newUser.put("address", address);
                         newUser.put("profileImageBlob", profileImageBlob);
-                        newUser.put("joinedDate", new Timestamp(new Date()));
+                        newUser.put("joinedDate", FieldValue.serverTimestamp());
 
                         db.collection("users").document(userId).set(newUser)
                                 .addOnCompleteListener(dbTask -> {
