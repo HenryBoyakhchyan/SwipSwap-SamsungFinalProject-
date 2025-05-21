@@ -41,6 +41,7 @@
             android:layout_alignParentEnd="true"
             android:scaleType="fitCenter"
             android:src="@drawable/chat" />
+
     </RelativeLayout>
 
     <!-- Swap Item Details -->
@@ -56,30 +57,32 @@
         android:background="@drawable/card_border"
         android:elevation="2dp">
 
+
         <ImageView
             android:id="@+id/swapItemImage"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
             android:scaleType="centerCrop"
-            android:layout_marginEnd="12dp"
             android:src="@drawable/placeholder_image"
             android:background="@drawable/image_border" />
+
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical">
-
+            android:orientation="vertical"
+            android:padding="8dp">
             <TextView
                 android:id="@+id/swapItemDescription"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_marginBottom="4dp"
                 android:text="Item Description"
                 android:textColor="#000000"
-                android:textStyle="bold"
                 android:textSize="16sp"
-                android:layout_marginBottom="4dp" />
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/swapItemAddress"
@@ -89,16 +92,84 @@
                 android:textColor="#666666"
                 android:textSize="14sp" />
 
+
+            <!-- Contact  -->
             <TextView
-                android:id="@+id/swapItemStatus"
+                android:id="@+id/chat_item_contact"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Item Status"
+                android:layout_below="@id/chat_item_address"
+                android:layout_toEndOf="@id/itemImage"
+                android:paddingTop="4dp"
+                android:text="Contact"
                 android:textColor="#666666"
                 android:textSize="14sp"
-                android:layout_marginTop="4dp" />
+                android:maxLines="1"
+                android:ellipsize="end" />
+            <LinearLayout
+                android:id="@+id/itemStatsContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/chat_item_contact"
+                android:layout_toEndOf="@id/itemImage"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp">
+
+                <TextView
+                    android:id="@+id/tvGivenCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginEnd="16dp"
+                    android:text="Given: 0"
+                    android:textColor="@android:color/holo_green_dark"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/tvTakenCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Taken: 0"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/darker_gray" />
+
+            </LinearLayout>
+
+            <RelativeLayout
+                android:id="@+id/itemLableContainer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_below="@id/chat_item_contact"
+                android:layout_marginTop="8dp"
+                android:layout_toEndOf="@id/itemImage"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/swapItemStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Item Status"
+                    android:textColor="#666666"
+                    android:textSize="14sp"
+                    android:layout_marginTop="4dp" />
+
+                <TextView
+                    android:id="@+id/owner_label_my"
+                    android:layout_width="50dp"
+                    android:layout_height="20dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_margin="6dp"
+                    android:background="@drawable/badge_background"
+                    android:gravity="center"
+                    android:text="my item"
+                    android:textColor="@android:color/white"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+            </RelativeLayout>
+
 
             <!-- Buttons Container -->
+
+
             <LinearLayout
                 android:id="@+id/buttonLayout"
                 android:layout_width="match_parent"
@@ -130,8 +201,12 @@
                     android:text="Taken"
                     android:layout_marginStart="8dp"
                     android:visibility="gone" />
+
             </LinearLayout>
+
         </LinearLayout>
+
+
     </LinearLayout>
 
     <!-- Messages -->

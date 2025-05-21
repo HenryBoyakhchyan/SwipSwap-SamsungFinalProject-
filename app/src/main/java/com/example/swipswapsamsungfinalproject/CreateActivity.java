@@ -263,10 +263,12 @@ public class CreateActivity extends AppCompatActivity {
                                             progressDialog.dismiss();
                                             Toast.makeText(this, "Item added!", Toast.LENGTH_SHORT).show();
                                             finish();
+                                            startActivity(new Intent(CreateActivity.this, UserActivity.class));
+
                                         })
                                         .addOnFailureListener(e -> {
                                             progressDialog.dismiss();
-                                            Toast.makeText(this, "Add failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(this, "Image is too large to upload. Please choose a smaller image. ", Toast.LENGTH_LONG).show();
                                         });
                             });
                 }

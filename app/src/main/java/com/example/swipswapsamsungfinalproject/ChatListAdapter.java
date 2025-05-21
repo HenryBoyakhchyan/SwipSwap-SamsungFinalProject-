@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,14 +17,17 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
 
 public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatViewHolder> {
 
     private Context context;
+    private FirebaseFirestore firestoreDb;
 
     private List<ChatItem> chatList;
     private String currentUserEmail;
@@ -56,8 +60,6 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatVi
             holder.ownerLabel.setVisibility(View.GONE);
         }
 
-
-        // Set description and address
         holder.itemDescription.setText(chat.getSwapItemDescription() != null ? chat.getSwapItemDescription() : "");
         holder.itemAddress.setText(chat.getSwapItemAddress() != null ? chat.getSwapItemAddress() : "");
        if( youOwner ) {
@@ -122,7 +124,6 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatVi
     public int getItemCount() {
         return chatList.size();
     }
-
 
 
     static class ChatViewHolder extends RecyclerView.ViewHolder {

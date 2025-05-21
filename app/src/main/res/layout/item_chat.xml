@@ -80,8 +80,8 @@
 
         <TextView
             android:id="@+id/owner_label"
-            android:layout_width="55dp"
-            android:layout_height="28dp"
+            android:layout_width="50dp"
+            android:layout_height="20dp"
             android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
             android:layout_margin="6dp"
@@ -89,7 +89,7 @@
             android:gravity="center"
             android:text="my item"
             android:textColor="@android:color/white"
-            android:textSize="12sp"
+            android:textSize="10sp"
             android:textStyle="bold" />
         <!-- Unread Badge (bottom right corner) -->
         <TextView

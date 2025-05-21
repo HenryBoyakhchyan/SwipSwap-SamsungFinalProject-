@@ -104,11 +104,11 @@
                             <TextView
                                 android:id="@+id/tvGivenCount"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
+                                android:layout_height="match_parent"
+                                android:layout_marginEnd="16dp"
                                 android:text="Given: 0"
-                                android:textSize="14sp"
                                 android:textColor="@android:color/holo_green_dark"
-                                android:layout_marginEnd="16dp" />
+                                android:textSize="14sp" />
 
                             <TextView
                                 android:id="@+id/tvTakenCount"

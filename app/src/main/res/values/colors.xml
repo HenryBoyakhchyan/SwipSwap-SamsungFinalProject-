@@ -10,6 +10,8 @@
     <color name="orange">#ffa314</color>
     <color name="white">#ffffff</color>
     <color name="statusYellow">#ffffbb33</color>
+    <color name="statusGrey">#666666</color>
     <color name="statusGreen">#ff669900</color>
     <color name="statusRed">#ffcc0000</color>
+    <color name="statusBlack">#000000</color>
 </resources>

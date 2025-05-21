@@ -17,9 +17,11 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -39,7 +41,10 @@ public class MessagesActivity extends AppCompatActivity {
     private EditText messageInput;
     private Button sendButton, acceptButton, declineButton, takenButton;
     private ImageView backButton, swapItemImage;
-    private TextView swapItemDescription, swapItemAddress, swapItemStatus;
+    private TextView swapItemDescription, swapItemAddress, swapItemStatus
+            , itemContact, ownerLabel, tvGivenCount, tvTakenCount;
+    private boolean youOwner;
+    private String currentUserEmail;
 
     private MessageAdapter messagesAdapter;
     private List<MessageItem> messageList = new ArrayList<>();
@@ -48,6 +53,9 @@ public class MessagesActivity extends AppCompatActivity {
     private FirebaseAuth auth;
     private String chatId, userId, currentStatus;
     private boolean isOwner = false;
+    private FirebaseFirestore firestoreDb;
+
+    private long swapId;
     private String swapOwnerId = "", clientUserId = "";
 
     @Override
@@ -66,7 +74,6 @@ public class MessagesActivity extends AppCompatActivity {
             return;
         }
 
-        // Bind views
         messagesRecyclerView = findViewById(R.id.messagesRecyclerView);
         messageInput = findViewById(R.id.messageInput);
         sendButton = findViewById(R.id.sendButton);
@@ -78,6 +85,10 @@ public class MessagesActivity extends AppCompatActivity {
         swapItemDescription = findViewById(R.id.swapItemDescription);
         swapItemAddress = findViewById(R.id.swapItemAddress);
         swapItemStatus = findViewById(R.id.swapItemStatus);
+        itemContact  = findViewById(R.id.chat_item_contact);
+        ownerLabel = findViewById(R.id.owner_label_my);
+        tvGivenCount = findViewById(R.id.tvGivenCount);
+        tvTakenCount = findViewById(R.id.tvTakenCount);
 
         messagesAdapter = new MessageAdapter(this, messageList);
         messagesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -93,15 +104,25 @@ public class MessagesActivity extends AppCompatActivity {
     }
 
     private void loadChatInfo() {
+        currentUserEmail = auth.getCurrentUser().getEmail();
+
         db.collection("chats").document(chatId).get()
                 .addOnSuccessListener(snapshot -> {
                     if (!snapshot.exists()) return;
 
                     currentStatus = snapshot.getString("status");
+                    swapId = snapshot.getLong("swapId");
                     swapOwnerId = snapshot.getString("swapOwnerId");
                     clientUserId = snapshot.getString("clientUserId");
 
+
                     isOwner = userId.equals(swapOwnerId);
+
+                    if (isOwner) {
+                        this.ownerLabel.setVisibility(View.VISIBLE);
+                    } else {
+                        this.ownerLabel.setVisibility(View.GONE);
+                    }
 
                     String imgBlob = snapshot.getString("swapItemImageBlob");
                     if (imgBlob != null && !imgBlob.isEmpty()) {
@@ -112,13 +133,52 @@ public class MessagesActivity extends AppCompatActivity {
 
                     swapItemDescription.setText(snapshot.getString("swapItemDescription"));
                     swapItemAddress.setText(snapshot.getString("swapItemAddress"));
-                    swapItemStatus.setText(currentStatus);
 
+                    if( isOwner ) {
+                        loadUserProfile(snapshot.getString("clientUserId"));
+                        itemContact.setText(snapshot.getString("clientUserEmail") != null ? "contact: " + snapshot.getString("clientUserEmail") : "");
+                    } else{
+                        loadUserProfile(snapshot.getString("swapOwnerId"));
+                        itemContact.setText(snapshot.getString("swapOwnerEmail") != null ? "contact: " + snapshot.getString("swapOwnerEmail") : "");
+                    }
                     updateUIBasedOnStatus();
                     loadMessages();
                 });
     }
+    private void loadUserProfile(String userId) {
 
+        db.collection("users").document(userId).get()
+                .addOnSuccessListener(snapshot -> {
+                    if (!snapshot.exists()) return;
+                    User user = snapshot.toObject(User.class);
+                    if (user != null) {
+                        int givenCount = user.getGiven();
+                        int takenCount = user.getTaken();
+
+                        tvGivenCount.setText("given: " + givenCount);
+                        tvTakenCount.setText("taken: " + takenCount);
+                    }
+        });
+       }
+    private void updateSwapItemStatus(){
+
+        db.collection("swap_items")
+                .whereEqualTo("swapId", swapId)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (!querySnapshot.isEmpty()) {
+                        DocumentSnapshot doc = querySnapshot.getDocuments().get(0);
+
+                        doc.getReference()
+                                .update("status", currentStatus)
+                                .addOnSuccessListener(aVoid -> Log.d("Firestore", "SwapItem updated"))
+                                .addOnFailureListener(e -> Log.e("FirestoreError", "SwapItem update failed", e));
+                    } else {
+                        Log.e("Firestore", "No swap_item found with swapId = " + swapId);
+                    }
+                });
+
+    }
     private void updateUIBasedOnStatus() {
         messageInput.setEnabled(true);
         sendButton.setEnabled(true);
@@ -146,8 +206,27 @@ public class MessagesActivity extends AppCompatActivity {
                 }
                 break;
             case "given":
-                // No buttons visible, messaging allowed
                 break;
+        }
+
+        swapItemStatus.setText(currentStatus);
+
+        // Set status icon
+        switch (currentStatus) {
+            case "chosen":
+                swapItemStatus.setTextColor(this.getColor(R.color.statusYellow));
+                break;
+            case "accepted":
+                swapItemStatus.setTextColor(this.getColor(R.color.statusRed));
+                break;
+            case "published":
+                swapItemStatus.setTextColor(this.getColor(R.color.statusGrey));
+                break;
+            case "declined":
+                swapItemStatus.setTextColor(this.getColor(R.color.statusBlack));
+                break;
+            default:
+                swapItemStatus.setTextColor(this.getColor(R.color.statusGreen));
         }
     }
 
@@ -191,6 +270,7 @@ public class MessagesActivity extends AppCompatActivity {
                     Toast.makeText(this, "Accepted", Toast.LENGTH_SHORT).show();
                     currentStatus = "accepted";
                     updateUIBasedOnStatus();
+                    updateSwapItemStatus();
                 });
     }
 
@@ -214,25 +294,41 @@ public class MessagesActivity extends AppCompatActivity {
                     Toast.makeText(this, "Declined", Toast.LENGTH_SHORT).show();
                     currentStatus = "declined";
                     updateUIBasedOnStatus();
+                    updateSwapItemStatus();
                 });
     }
 
     private void markAsTaken() {
         db.collection("chats").document(chatId).update("status", "given")
                 .addOnSuccessListener(unused -> {
-                    incrementField("Users", swapOwnerId, "given");
-                    incrementField("Users", clientUserId, "taken");
+                    incrementGiven(swapOwnerId);
+                    incrementTaken(clientUserId);
+
                     Toast.makeText(this, "Marked as Given", Toast.LENGTH_SHORT).show();
                     currentStatus = "given";
+                    updateSwapItemStatus();
                     updateUIBasedOnStatus();
+                });
+
+    }
+
+    private void incrementGiven(String userId) {
+        db.collection("users").document(userId).get()
+                .addOnSuccessListener(snapshot -> {
+                    Long current = snapshot.getLong("given");
+                    long takenCount = current != null ? current : 0;
+                    db.collection("users").document(userId)
+                            .update("given", takenCount + 1);
                 });
     }
 
-    private void incrementField(String collection, String userId, String field) {
-        db.collection(collection).document(userId).get()
+    private void incrementTaken(String userId) {
+        db.collection("users").document(userId).get()
                 .addOnSuccessListener(snapshot -> {
-                    long current = snapshot.contains(field) ? snapshot.getLong(field) : 0;
-                    db.collection(collection).document(userId).update(field, current + 1);
+                    Long current = snapshot.getLong("taken");
+                    long takenCount = current != null ? current : 0;
+                    db.collection("users").document(userId)
+                            .update("taken", takenCount + 1);
                 });
     }
 

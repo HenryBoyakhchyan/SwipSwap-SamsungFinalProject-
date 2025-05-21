@@ -76,8 +76,11 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
             case "accepted":
                 holder.status.setTextColor(ContextCompat.getColor(context, R.color.statusRed));
                 break;
-            case "rejected":
-                holder.status.setTextColor(ContextCompat.getColor(context, R.color.statusYellow));
+            case "published":
+                holder.status.setTextColor(ContextCompat.getColor(context, R.color.statusGrey));
+                break;
+            case "declined":
+                holder.status.setTextColor(ContextCompat.getColor(context, R.color.statusBlack));
                 break;
             default:
                 holder.status.setTextColor(ContextCompat.getColor(context, R.color.statusGreen));

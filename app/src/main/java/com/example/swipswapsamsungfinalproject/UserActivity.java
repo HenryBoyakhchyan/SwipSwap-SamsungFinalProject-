@@ -130,10 +130,8 @@ public class UserActivity extends AppCompatActivity {
                             int givenCount = user.getGiven();
                             int takenCount = user.getTaken();
 
-                            String givenText = "Given: " + givenCount;
-                            String takenText = "Taken: " + takenCount;
-                            tvGivenCount.setText(givenText);
-                            tvTakenCount.setText(takenText);
+                            tvGivenCount.setText("given: " + givenCount);
+                            tvTakenCount.setText("taken: " + takenCount);
 
                             String blob = user.getProfileImageBlob();
                             if (blob != null && !blob.isEmpty()) {

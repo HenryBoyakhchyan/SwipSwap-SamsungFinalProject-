@@ -128,7 +128,7 @@ public class MainActivity extends AppCompatActivity implements CardStackListener
 
                     for (QueryDocumentSnapshot doc : querySnapshots) {
                         ItemCard item = doc.toObject(ItemCard.class);
-                        if (!item.getStatus().equals("trashed") && !item.getStatus().equals("given") &&
+                        if (!item.getStatus().equals("accepted") && !item.getStatus().equals("given") &&
                                 (item.getChosenByUserIds() == null || !item.getChosenByUserIds().contains(currentUserId))) {
                             itemList.add(item);
                         }
@@ -192,7 +192,6 @@ public class MainActivity extends AppCompatActivity implements CardStackListener
                     if (!querySnapshot.isEmpty()) {
                         DocumentSnapshot doc = querySnapshot.getDocuments().get(0);
 
-                        // Now you can update it
                         doc.getReference()
                                 .update("chosenByUserIds", chosenBy, "status", "chosen")
                                 .addOnSuccessListener(aVoid -> Log.d("Firestore", "SwapItem updated"))
@@ -206,7 +205,7 @@ public class MainActivity extends AppCompatActivity implements CardStackListener
         String chatId = swipedItem.getSwapId() + "_" + currentUser.getUid();
 
         Map<String, Object> chatData = new HashMap<>();
-        chatData.put("chatId", chatId); // optional, not required if using docId
+        chatData.put("chatId", chatId);
         chatData.put("swapId", swipedItem.getSwapId());
         chatData.put("swapOwnerId", swipedItem.getUserId());
         chatData.put("swapOwnerEmail", swipedItem.getEmail());
