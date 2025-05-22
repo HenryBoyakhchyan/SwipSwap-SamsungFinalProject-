@@ -100,7 +100,8 @@ public class MessagesActivity extends AppCompatActivity {
         acceptButton.setOnClickListener(v -> acceptUser());
         declineButton.setOnClickListener(v -> declineUser());
         takenButton.setOnClickListener(v -> markAsTaken());
-        backButton.setOnClickListener(v -> finish());
+       // backButton.setOnClickListener(v -> finish());
+        backButton.setOnClickListener(view -> startActivity(new Intent(this, ChatActivity.class)));
     }
 
     private void loadChatInfo() {

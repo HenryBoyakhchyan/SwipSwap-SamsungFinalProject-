@@ -18,11 +18,15 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatViewHolder> {
 
@@ -47,6 +51,23 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatVi
         return new ChatViewHolder(view);
     }
 
+    public String convertFierbaseDate(String firestoreTimestamp){
+
+        String secondsString = firestoreTimestamp.substring(firestoreTimestamp.indexOf("seconds=") + 8, firestoreTimestamp.indexOf(",")).trim();
+        String nanosString = firestoreTimestamp.substring(firestoreTimestamp.indexOf("nanoseconds=") + 12, firestoreTimestamp.indexOf(")")).trim();
+
+        long seconds = Long.parseLong(secondsString);
+        int nanos = Integer.parseInt(nanosString);
+
+        Timestamp timestamp = new Timestamp(seconds, nanos);
+        Date date = timestamp.toDate();
+
+        SimpleDateFormat format = new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.US);
+        String formattedDate = format.format(date);
+
+        return formattedDate;
+    }
+
     @Override
     public void onBindViewHolder(@NonNull ChatViewHolder holder, int position ) {
 
@@ -59,6 +80,8 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatVi
         } else {
             holder.ownerLabel.setVisibility(View.GONE);
         }
+       // String formatedPublishedDate = convertFierbaseDate(chat.getLastMessageTimestamp().toString());
+       // holder.lastChatDate.setText(formatedPublishedDate);
 
         holder.itemDescription.setText(chat.getSwapItemDescription() != null ? chat.getSwapItemDescription() : "");
         holder.itemAddress.setText(chat.getSwapItemAddress() != null ? chat.getSwapItemAddress() : "");
@@ -128,7 +151,8 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatVi
 
     static class ChatViewHolder extends RecyclerView.ViewHolder {
         ImageView itemImage, statusIcon;
-        TextView itemDescription, itemAddress, itemContact, ownerLabel, unreadMessagesCount;
+        TextView itemDescription, itemAddress, itemContact,
+                ownerLabel, unreadMessagesCount; //lastChatDate
 
         public ChatViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -138,6 +162,8 @@ public class ChatListAdapter extends RecyclerView.Adapter<ChatListAdapter.ChatVi
             itemAddress = itemView.findViewById(R.id.chat_item_address);
             itemContact = itemView.findViewById(R.id.chat_item_contact);
             ownerLabel = itemView.findViewById(R.id.owner_label);
+           // lastChatDate = itemView.findViewById(R.id.lastMessageTimestamp);
+
             unreadMessagesCount = itemView.findViewById(R.id.unreadMessagesCount);
         }
     }

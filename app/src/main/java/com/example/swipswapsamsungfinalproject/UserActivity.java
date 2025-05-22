@@ -84,9 +84,9 @@ public class UserActivity extends AppCompatActivity {
                     if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                         selectedImageUri = result.getData().getData();
                         Glide.with(UserActivity.this)
-                                .load(selectedImageUri) // or use Base64 converted to bitmap
+                                .load(selectedImageUri)
                                 .placeholder(R.drawable.profile_placeholder)
-                                .circleCrop() // <- This makes it circular
+                                .circleCrop()
                                 .into(profileImage);
                     }
                 });
@@ -167,6 +167,10 @@ public class UserActivity extends AppCompatActivity {
                         ItemCard item = doc.toObject(ItemCard.class);
                         itemList.add(item);
                     }
+                    itemList.sort((a, b) -> {
+                        if (a.getPublishedDate() == null || b.getPublishedDate() == null) return 0;
+                        return b.getPublishedDate().compareTo(a.getPublishedDate());
+                    });
                     itemAdapter.notifyDataSetChanged();
                 })
                 .addOnFailureListener(e -> Log.e("UserActivity", "Failed to load items", e));
@@ -222,9 +226,9 @@ public class UserActivity extends AppCompatActivity {
             if (selectedImageUri != null) {
                 try {
                     Glide.with(UserActivity.this)
-                            .load(selectedImageUri) // or use Base64 converted to bitmap
+                            .load(selectedImageUri)
                             .placeholder(R.drawable.profile_placeholder)
-                            .circleCrop() // <- This makes it circular
+                            .circleCrop()
                             .into(profileImage);
 
                     InputStream inputStream = getContentResolver().openInputStream(selectedImageUri);

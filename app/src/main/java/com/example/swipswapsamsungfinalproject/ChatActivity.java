@@ -82,7 +82,8 @@ public class ChatActivity extends AppCompatActivity {
                 .addOnSuccessListener(clientChats -> {
                     for (DocumentSnapshot doc : clientChats.getDocuments()) {
                         ChatItem chatItem = doc.toObject(ChatItem.class);
-                        if (chatItem != null && loadedChatIds.add(doc.getId())) {
+                        if (chatItem != null && loadedChatIds.add(doc.getId())
+                                && !chatItem.getStatus().equals("declined")) {
                             chatItem.setChatId(doc.getId());
                             chatList.add(chatItem);
                         }
@@ -95,16 +96,20 @@ public class ChatActivity extends AppCompatActivity {
                             .addOnSuccessListener(ownerChats -> {
                                 for (DocumentSnapshot doc : ownerChats.getDocuments()) {
                                     ChatItem chatItem = doc.toObject(ChatItem.class);
-                                    if (chatItem != null && loadedChatIds.add(doc.getId())) {
+                                    if (chatItem != null && loadedChatIds.add(doc.getId())
+                                        && !chatItem.getStatus().equals("declined")) {
                                         chatItem.setChatId(doc.getId());
                                         chatList.add(chatItem);
                                     }
                                 }
-                                // Notify adapter after both queries have completed
+                                chatList.sort((a, b) -> {
+                                    if (a.getCreationDate() == null || b.getCreationDate() == null) return 0;
+                                    return b.getCreationDate().compareTo(a.getCreationDate());
+                                });
+
                                 chatListAdapter.notifyDataSetChanged();
                             })
                             .addOnFailureListener(e -> {
-                                // Handle any errors retrieving owner chats
                                 Log.e("FirestoreError", "Error fetching owner chats", e);
                             });
                 })

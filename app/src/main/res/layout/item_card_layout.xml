@@ -13,7 +13,6 @@
         android:padding="10dp"
         android:background="@drawable/card_border">
 
-        <!-- Main Content: Image + Details -->
         <LinearLayout
             android:id="@+id/cardContentLayout"
             android:layout_width="match_parent"

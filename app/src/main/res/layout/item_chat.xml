@@ -67,6 +67,7 @@
             android:maxLines="1"
             android:ellipsize="end" />
 
+
         <!-- Status Icon (top right corner) -->
         <ImageView
             android:id="@+id/statusIcon"
